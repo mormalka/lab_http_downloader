@@ -1,0 +1,88 @@
+package com.company;
+
+import sun.nio.ch.ThreadPool;
+
+import java.io.DataOutputStream;
+import java.lang.management.ThreadInfo;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
+
+public class manager {
+
+    public static int FILE_LEN = 0;
+    public static int THREAD_CONNECTIONS = 0;
+    public static List<String> URL_LIST;
+    public static Thread[] THREADS;
+
+    public static void setFileLength (String url_str){
+        HttpURLConnection connection = null;
+        //Creates the connection
+        try {
+            URL url = new URL(url_str);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("HEAD"); //Send request
+
+            //Assume the server knows the content length
+            FILE_LEN = connection.getContentLength();
+            System.out.println("file length " + FILE_LEN);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    public static void setNumOfConnection(int n){
+        //TODO
+        THREAD_CONNECTIONS = n;
+    }
+
+    public static void setUrlList(List<String> urls){
+        URL_LIST = urls;
+    }
+
+    public static void initWorkers(){
+
+        int rangeToRead = FILE_LEN / THREAD_CONNECTIONS ;
+        THREADS = new Thread[THREAD_CONNECTIONS];
+
+        int offset = 0;
+        int i;
+
+        String[] urls = distributeUrl();
+
+        for (i = 0; i < THREAD_CONNECTIONS -1; i++){
+            Worker worker = new Worker(rangeToRead,offset,i,urls[i]);
+            THREADS[i] = new Thread(worker);
+            offset += rangeToRead; //start point of the next thread to read from file
+        }
+
+        Worker worker = new Worker(((FILE_LEN % THREAD_CONNECTIONS) + rangeToRead),offset,i,urls[i]); // last worker will read the reminder of the file
+        THREADS[i] = new Thread(worker);
+
+    }
+
+    public static String[] distributeUrl(){
+        //each url index respectively to thread serial number
+        String[] urls = new String[THREAD_CONNECTIONS];
+        int j = 0;
+        for(int i = 0; i<THREAD_CONNECTIONS; i++){
+            urls[i] = URL_LIST.get(j % URL_LIST.size());
+            j++;
+        }
+
+        return urls;
+    }
+
+    public static void startWorkers(){
+
+        for(int i = 0 ; i <THREADS.length ; i++){
+            THREADS[i].start();
+        }
+    }
+}
