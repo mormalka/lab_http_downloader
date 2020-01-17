@@ -6,9 +6,9 @@ public class DataPiece {
     private int size;
     private int offset;
 //    private int serialNumber;
-    private ArrayList<Byte> content;
+    private ArrayList<Integer> content;
 
-    public void DataPiece(int offset, ArrayList<Byte> data, int rangeToRead) {
+    public DataPiece(int offset, ArrayList<Integer> data, int rangeToRead) {
         this.offset = offset;
         this.content = data;
         this.size = rangeToRead;

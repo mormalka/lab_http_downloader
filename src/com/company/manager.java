@@ -1,12 +1,13 @@
 package com.company;
 
-import sun.nio.ch.ThreadPool;
 
 import java.io.DataOutputStream;
-import java.lang.management.ThreadInfo;
+
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class manager {
 
@@ -14,6 +15,8 @@ public class manager {
     public static int THREAD_CONNECTIONS = 0;
     public static List<String> URL_LIST;
     public static Thread[] THREADS;
+    public static BlockingQueue<DataPiece> CONTENT_QUEUE = new LinkedBlockingQueue<>();
+    public static Thread  WRITER;
 
     public static void setFileLength (String url_str){
         HttpURLConnection connection = null;
@@ -57,12 +60,12 @@ public class manager {
         String[] urls = distributeUrl();
 
         for (i = 0; i < THREAD_CONNECTIONS -1; i++){
-            Worker worker = new Worker(rangeToRead,offset,i,urls[i]);
+            Worker worker = new Worker(rangeToRead,offset,i,urls[i],CONTENT_QUEUE);
             THREADS[i] = new Thread(worker);
             offset += rangeToRead; //start point of the next thread to read from file
         }
-
-        Worker worker = new Worker(((FILE_LEN % THREAD_CONNECTIONS) + rangeToRead),offset,i,urls[i]); // last worker will read the reminder of the file
+        // last worker will read the reminder of the file
+        Worker worker = new Worker(((FILE_LEN % THREAD_CONNECTIONS) + rangeToRead),offset,i,urls[i],CONTENT_QUEUE);
         THREADS[i] = new Thread(worker);
 
     }
@@ -84,5 +87,12 @@ public class manager {
         for(int i = 0 ; i <THREADS.length ; i++){
             THREADS[i].start();
         }
+    }
+
+    public static void startWriter(){
+
+        WRITER =new Thread(new Writer(CONTENT_QUEUE));
+
+
     }
 }
