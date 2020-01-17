@@ -3,14 +3,14 @@ package com.company;
 import java.util.ArrayList;
 
 public class DataPiece {
-    private int size;
-    private int offset;
+    public int size;
+    public int offset;
 //    private int serialNumber;
-    private byte[] content;
+    public byte[] content;
 
-    public DataPiece(int offset, byte[] data, int rangeToRead) {
+    public DataPiece(int offset, byte[] data, int pieceSize) {
         this.offset = offset;
         this.content = data;
-        this.size = rangeToRead;
+        this.size = pieceSize;
     }
 }

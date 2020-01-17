@@ -48,8 +48,7 @@ public class Worker implements Runnable{
             //getting the content of file receives from the request (in the defined range)
             readContent(connection, this.rangeToRead, this.piece_size, this.offset, this.queue);
 
-            //System.out.println(this.serialNumber + " - " + content.size());
-            //System.out.println(queue.size());
+            System.out.println(queue.size());
 
         } catch (Exception e) {
             System.err.println("HTTP request failed " + e.getMessage() + ",Download failed");
@@ -64,12 +63,22 @@ public class Worker implements Runnable{
 
     public static void readContent(HttpURLConnection connection, int rangeToRead, int piece_size, int offset, BlockingQueue<DataPiece> queue) throws IOException {
 
+        System.out.println("read content was called");
+
         InputStream in = null;
         ArrayList<Integer> content = new ArrayList<>();
         try {
             in = connection.getInputStream();
             int inputRead = 0;
             while (inputRead < rangeToRead){
+                //check if this is the last thread
+                if((rangeToRead % piece_size) != 0){
+                    if ((rangeToRead - inputRead) < piece_size) {
+                        piece_size = rangeToRead - inputRead; //only the last piece of the last thread will change size
+                    }
+                }
+
+                System.out.println(piece_size);
 
                 int currrent_byte;
                 byte[] input_piece = new byte[piece_size];
@@ -77,9 +86,10 @@ public class Worker implements Runnable{
                     if((currrent_byte = in.read()) == -1) break;
                     input_piece[i] = (byte) currrent_byte;
                 }
-                DataPiece current_piece = new DataPiece(offset, input_piece, rangeToRead);
+                DataPiece current_piece = new DataPiece(offset, input_piece, piece_size);
                 queue.add(current_piece);
                 inputRead += piece_size;
+                offset += piece_size; /// NEW !!!!!!!!!
             }
 
         } catch (IOException e) {

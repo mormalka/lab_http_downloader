@@ -58,6 +58,7 @@ public class Main {
         //sets the number of possible threads connections
         manager.setNumOfConnection(thread_Connections);
         manager.initWorkers();
+        manager.startWriter();
         manager.startWorkers();
 
 

@@ -3,6 +3,8 @@ package com.company;
 
 import java.io.DataOutputStream;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -70,7 +72,6 @@ public class manager {
         // last worker will read the reminder of the file
         Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead ,offset,i,urls[i],CONTENT_QUEUE);
         THREADS[i] = new Thread(worker);
-
     }
 
     public static String[] distributeUrl(){
@@ -93,9 +94,25 @@ public class manager {
     }
 
     public static void startWriter(){
+        File destFile = createDestFile(URL_LIST.get(0));
+        WRITER = new Thread(new Writer(CONTENT_QUEUE, FILE_LEN, destFile));
+        WRITER.start();
 
-        WRITER =new Thread(new Writer(CONTENT_QUEUE));
+    }
 
+    public static File createDestFile(String url){
+        String[] splittedUrl = url.split("/");
+        String name = splittedUrl[splittedUrl.length - 1];
+        String path = "C:\\Test\\" + name; // CHANGE TO CURRENT
+        File file = new File(path);
 
+        try {
+            file.createNewFile();
+        } catch (IOException e){
+            System.err.println("Creating new file failed " + e.getMessage() + ",Download failed");
+            //return ?????
+        }
+
+        return file;
     }
 }
