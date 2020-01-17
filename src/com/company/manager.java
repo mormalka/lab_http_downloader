@@ -17,6 +17,7 @@ public class manager {
     public static Thread[] THREADS;
     public static BlockingQueue<DataPiece> CONTENT_QUEUE = new LinkedBlockingQueue<>();
     public static Thread  WRITER;
+    public static int PIECE_SIZE = 4096;
 
     public static void setFileLength (String url_str){
         HttpURLConnection connection = null;
@@ -50,8 +51,10 @@ public class manager {
     }
 
     public static void initWorkers(){
+        int totalPieces = FILE_LEN / PIECE_SIZE;
+        int workerPieces = totalPieces / THREAD_CONNECTIONS;
+        int rangeToRead = PIECE_SIZE*workerPieces ;
 
-        int rangeToRead = FILE_LEN / THREAD_CONNECTIONS ;
         THREADS = new Thread[THREAD_CONNECTIONS];
 
         int offset = 0;
@@ -65,7 +68,7 @@ public class manager {
             offset += rangeToRead; //start point of the next thread to read from file
         }
         // last worker will read the reminder of the file
-        Worker worker = new Worker(((FILE_LEN % THREAD_CONNECTIONS) + rangeToRead),offset,i,urls[i],CONTENT_QUEUE);
+        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead ,offset,i,urls[i],CONTENT_QUEUE);
         THREADS[i] = new Thread(worker);
 
     }

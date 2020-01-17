@@ -14,7 +14,7 @@ public class Worker implements Runnable{
     private int serialNumber;
     private String url_str;
     private BlockingQueue<DataPiece> queue;
-    //private int chunk_size = 1000000 ;
+    private int piece_size = 4096 ;
 
 
     public Worker(int rangeToRead, int offset, int serialNumber,String url_str,BlockingQueue<DataPiece> blocking_queue){
@@ -46,10 +46,8 @@ public class Worker implements Runnable{
             //System.out.println(connection.getHeaderField("Content-Range"));
 
             //getting the content of file receives from the request (in the defined range)
-            ArrayList<Integer> content = readContent(connection);
+            readContent(connection, this.rangeToRead, this.piece_size, this.offset, this.queue);
 
-            DataPiece piece = new DataPiece(this.offset, content, this.rangeToRead);
-            this.queue.add(piece);
             //System.out.println(this.serialNumber + " - " + content.size());
             //System.out.println(queue.size());
 
@@ -64,16 +62,24 @@ public class Worker implements Runnable{
 
     }
 
-    public static ArrayList<Integer> readContent(HttpURLConnection connection) throws IOException {
+    public static void readContent(HttpURLConnection connection, int rangeToRead, int piece_size, int offset, BlockingQueue<DataPiece> queue) throws IOException {
 
-        InputStreamReader in = null;
+        InputStream in = null;
         ArrayList<Integer> content = new ArrayList<>();
         try {
-            in = new InputStreamReader (connection.getInputStream());
+            in = connection.getInputStream();
+            int inputRead = 0;
+            while (inputRead < rangeToRead){
 
-            int currrent_byte;
-            while ((currrent_byte = in.read()) != -1){
-                content.add(currrent_byte);
+                int currrent_byte;
+                byte[] input_piece = new byte[piece_size];
+                for(int i = 0; i < piece_size; i++){
+                    if((currrent_byte = in.read()) == -1) break;
+                    input_piece[i] = (byte) currrent_byte;
+                }
+                DataPiece current_piece = new DataPiece(offset, input_piece, rangeToRead);
+                queue.add(current_piece);
+                inputRead += piece_size;
             }
 
         } catch (IOException e) {
@@ -82,7 +88,5 @@ public class Worker implements Runnable{
             if(in != null)
                 in.close();
         }
-        return content;
-
     }
 }
