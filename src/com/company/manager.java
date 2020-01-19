@@ -70,7 +70,7 @@ public class manager {
             offset += rangeToRead; //start point of the next thread to read from file
         }
         // last worker will read the reminder of the file
-        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead ,offset,i,urls[i],CONTENT_QUEUE);
+        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (FILE_LEN % PIECE_SIZE) ,offset,i,urls[i],CONTENT_QUEUE);
         THREADS[i] = new Thread(worker);
     }
 

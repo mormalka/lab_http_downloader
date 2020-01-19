@@ -20,7 +20,7 @@ public class Writer implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Writer's running...");
+        System.out.println("Writer's running..."); // REMOVE
         try{
             RandomAccessFile randomAccess = new RandomAccessFile(dest_file, "rw");
             while(numOfReadBytes < file_len){
