@@ -8,6 +8,7 @@ public class Metadata {
     }
 
     public void approvePiece(int pieceId){
+
         pieceMap[pieceId] = true;
     }
 }

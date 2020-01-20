@@ -61,10 +61,10 @@ public class manager {
 
         THREADS = new Thread[THREAD_CONNECTIONS];
 
-        NUM_TOTAL_PIRECES = totalPieces +((((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE) + (FILE_LEN % PIECE_SIZE)) / PIECE_SIZE)  ; // the last one is going to read all the reminder, so check how many times piece size get init
-        if (((((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE) + (FILE_LEN % PIECE_SIZE)) % PIECE_SIZE) != 0){
+        NUM_TOTAL_PIRECES = totalPieces;
+        if((FILE_LEN % PIECE_SIZE) != 0)
             NUM_TOTAL_PIRECES++;
-        }
+
         System.out.println("NUM_TOTAL_PIRECES :" + NUM_TOTAL_PIRECES);
 
         initMetadata(NUM_TOTAL_PIRECES);

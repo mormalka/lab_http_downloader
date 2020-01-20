@@ -93,10 +93,7 @@ public class Worker implements Runnable{
                 DataPiece current_piece = new DataPiece(offset, input_piece, piece_size, firstPieceId);
                 queue.add(current_piece);
                 inputRead += piece_size;
-                offset += piece_size; /// NEW !!!!!!!!!
-                if(firstPieceId == 5942){
-                    System.out.println("-------rangeToRead:" + rangeToRead);
-                }
+                offset += piece_size;
                 firstPieceId++;
             }
 

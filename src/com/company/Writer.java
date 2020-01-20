@@ -32,7 +32,6 @@ public class Writer implements Runnable {
                     randomAccess.write(dataPiece.content);
                     this.metadata.approvePiece(dataPiece.id);
                     numOfReadBytes += dataPiece.size;
-                    System.out.println("***numOfReadBytes: " + numOfReadBytes);
                 }
 
             }
