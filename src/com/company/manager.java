@@ -65,6 +65,7 @@ public class manager {
         if (((((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE) + (FILE_LEN % PIECE_SIZE)) % PIECE_SIZE) != 0){
             NUM_TOTAL_PIRECES++;
         }
+        System.out.println("NUM_TOTAL_PIRECES :" + NUM_TOTAL_PIRECES);
 
         initMetadata(NUM_TOTAL_PIRECES);
 

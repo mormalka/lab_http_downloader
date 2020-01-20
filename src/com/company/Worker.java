@@ -52,7 +52,7 @@ public class Worker implements Runnable{
             //getting the content of file receives from the request (in the defined range)
             readContent(connection, this.rangeToRead, this.piece_size, this.offset, this.queue, this.firstPieceId, this.metadata);
 
-            System.out.println(queue.size());
+            System.out.println("queue size:" + queue.size());
 
         } catch (Exception e) {
             System.err.println("HTTP request failed " + e.getMessage() + ",Download failed");
@@ -82,7 +82,7 @@ public class Worker implements Runnable{
                     }
                 }
 
-                System.out.println(piece_size);
+                System.out.println("piece size:" + piece_size);
 
                 int currrent_byte;
                 byte[] input_piece = new byte[piece_size];
@@ -94,6 +94,9 @@ public class Worker implements Runnable{
                 queue.add(current_piece);
                 inputRead += piece_size;
                 offset += piece_size; /// NEW !!!!!!!!!
+                if(firstPieceId == 5942){
+                    System.out.println("-------rangeToRead:" + rangeToRead);
+                }
                 firstPieceId++;
             }
 
