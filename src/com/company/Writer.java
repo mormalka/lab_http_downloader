@@ -12,6 +12,7 @@ public class Writer implements Runnable {
     public int numOfReadBytes = 0; //num of bytes that the writer already read
     public File dest_file;
     public Metadata metadata;
+    public boolean isWriterFinished = false;
 
     public Writer (BlockingQueue<DataPiece> queue, int file_len, File file, Metadata metadata){
         this.queue = queue;
@@ -35,16 +36,29 @@ public class Writer implements Runnable {
                 }
 
             }
-            System.out.print("[");
+            this.isWriterFinished = true;
+            metadata.printMap();
+//            System.out.print("[");
+//            for(int i = 0; i < (metadata.pieceMap.bitmap).length; i++){
+//                System.out.print(metadata.pieceMap.bitmap[i] +", ");
+//            }
+//            System.out.println("]");
+
+            System.out.print("from writer: [");
             for(int i = 0; i < (metadata.pieceMap.bitmap).length; i++){
                 System.out.print(metadata.pieceMap.bitmap[i] +", ");
             }
             System.out.println("]");
+
 
         } catch (IOException e){
             System.err.println("Access to file failed " + e.getMessage() + ",Download failed");
             return;
         }
 
+    }
+
+    public boolean isWriterFinished(){
+     return isWriterFinished;
     }
 }

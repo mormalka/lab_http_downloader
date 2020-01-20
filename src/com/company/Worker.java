@@ -82,7 +82,7 @@ public class Worker implements Runnable{
                     }
                 }
 
-                System.out.println("piece size:" + piece_size);
+//                System.out.println("piece size:" + piece_size);
 
                 int currrent_byte;
                 byte[] input_piece = new byte[piece_size];

@@ -129,7 +129,7 @@ public class manager {
         return file;
     }
 
-    public static void initMetadata(int NUM_TOTAL_PIRECES){
-        METADATA = new Metadata(NUM_TOTAL_PIRECES);
+    public static void initMetadata(int NUM_TOTAL_PIECES){
+        METADATA = new Metadata(NUM_TOTAL_PIECES);
     }
 }
