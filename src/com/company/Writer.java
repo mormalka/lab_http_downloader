@@ -11,11 +11,13 @@ public class Writer implements Runnable {
     public int file_len;
     public int numOfReadBytes = 0; //num of bytes that the writer already read
     public File dest_file;
+    public Metadata metadata;
 
-    public Writer (BlockingQueue<DataPiece> queue, int file_len, File file){
+    public Writer (BlockingQueue<DataPiece> queue, int file_len, File file, Metadata metadata){
         this.queue = queue;
         this.file_len = file_len;
         this.dest_file = file;
+        this.metadata = metadata;
     }
 
     @Override
@@ -28,11 +30,18 @@ public class Writer implements Runnable {
                     DataPiece dataPiece = queue.poll();
                     randomAccess.seek(dataPiece.offset);
                     randomAccess.write(dataPiece.content);
+                    this.metadata.approvePiece(dataPiece.id);
                     numOfReadBytes += dataPiece.size;
                     System.out.println("***numOfReadBytes: " + numOfReadBytes);
                 }
 
             }
+            System.out.print("[");
+            for(int i = 0; i < metadata.pieceMap.length; i++){
+                System.out.print(metadata.pieceMap[i] +", ");
+            }
+            System.out.println("]");
+
         } catch (IOException e){
             System.err.println("Access to file failed " + e.getMessage() + ",Download failed");
             return;

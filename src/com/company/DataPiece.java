@@ -7,10 +7,12 @@ public class DataPiece {
     public int offset;
 //    private int serialNumber;
     public byte[] content;
+    public int id;
 
-    public DataPiece(int offset, byte[] data, int pieceSize) {
+    public DataPiece(int offset, byte[] data, int pieceSize, int id) {
         this.offset = offset;
         this.content = data;
         this.size = pieceSize;
+        this.id = id;
     }
 }

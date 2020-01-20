@@ -15,15 +15,19 @@ public class Worker implements Runnable{
     private String url_str;
     private BlockingQueue<DataPiece> queue;
     private int piece_size = 4096 ;
+    private int firstPieceId;
+    private Metadata metadata;
 
 
-    public Worker(int rangeToRead, int offset, int serialNumber,String url_str,BlockingQueue<DataPiece> blocking_queue){
+    public Worker(int rangeToRead, int offset, int serialNumber,String url_str,BlockingQueue<DataPiece> blocking_queue, int firstPieceId, Metadata metadata){
 
         this.rangeToRead = rangeToRead;
         this.offset = offset;
         this.serialNumber = serialNumber;
         this.url_str = url_str;
         this.queue = blocking_queue;
+        this.firstPieceId = firstPieceId;
+        this.metadata = metadata;
 
         System.out.println(" rangeToRead- " + rangeToRead + " offset- " +  offset + " serialNumber- " + serialNumber + "  url_str- " +  url_str);
     }
@@ -46,7 +50,7 @@ public class Worker implements Runnable{
             //System.out.println(connection.getHeaderField("Content-Range"));
 
             //getting the content of file receives from the request (in the defined range)
-            readContent(connection, this.rangeToRead, this.piece_size, this.offset, this.queue);
+            readContent(connection, this.rangeToRead, this.piece_size, this.offset, this.queue, this.firstPieceId, this.metadata);
 
             System.out.println(queue.size());
 
@@ -61,7 +65,7 @@ public class Worker implements Runnable{
 
     }
 
-    public static void readContent(HttpURLConnection connection, int rangeToRead, int piece_size, int offset, BlockingQueue<DataPiece> queue) throws IOException {
+    public static void readContent(HttpURLConnection connection, int rangeToRead, int piece_size, int offset, BlockingQueue<DataPiece> queue, int firstPieceId, Metadata metadata) throws IOException {
 
         System.out.println("read content was called");
 
@@ -86,10 +90,11 @@ public class Worker implements Runnable{
                     if((currrent_byte = in.read()) == -1) break;
                     input_piece[i] = (byte) currrent_byte;
                 }
-                DataPiece current_piece = new DataPiece(offset, input_piece, piece_size);
+                DataPiece current_piece = new DataPiece(offset, input_piece, piece_size, firstPieceId);
                 queue.add(current_piece);
                 inputRead += piece_size;
                 offset += piece_size; /// NEW !!!!!!!!!
+                firstPieceId++;
             }
 
         } catch (IOException e) {

@@ -20,6 +20,8 @@ public class manager {
     public static BlockingQueue<DataPiece> CONTENT_QUEUE = new LinkedBlockingQueue<>();
     public static Thread  WRITER;
     public static int PIECE_SIZE = 4096;
+    public static int NUM_TOTAL_PIRECES;
+    public static Metadata METADATA;
 
     public static void setFileLength (String url_str){
         HttpURLConnection connection = null;
@@ -59,20 +61,31 @@ public class manager {
 
         THREADS = new Thread[THREAD_CONNECTIONS];
 
+        NUM_TOTAL_PIRECES = totalPieces +((((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE) + (FILE_LEN % PIECE_SIZE)) / PIECE_SIZE)  ; // the last one is going to read all the reminder, so check how many times piece size get init
+        if (((((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE) + (FILE_LEN % PIECE_SIZE)) % PIECE_SIZE) != 0){
+            NUM_TOTAL_PIRECES++;
+        }
+
+        initMetadata(NUM_TOTAL_PIRECES);
+
         int offset = 0;
         int i;
 
         String[] urls = distributeUrl();
 
+        int firstPieceId = 0; // for pieces id (for metadata array)
         for (i = 0; i < THREAD_CONNECTIONS -1; i++){
-            Worker worker = new Worker(rangeToRead,offset,i,urls[i],CONTENT_QUEUE);
+            Worker worker = new Worker(rangeToRead,offset,i,urls[i],CONTENT_QUEUE, firstPieceId, METADATA);
             THREADS[i] = new Thread(worker);
             offset += rangeToRead; //start point of the next thread to read from file
+            firstPieceId += workerPieces;
         }
         // last worker will read the reminder of the file
-        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (FILE_LEN % PIECE_SIZE) ,offset,i,urls[i],CONTENT_QUEUE);
+        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (FILE_LEN % PIECE_SIZE) ,offset,i,urls[i],CONTENT_QUEUE, firstPieceId, METADATA);
         THREADS[i] = new Thread(worker);
     }
+
+
 
     public static String[] distributeUrl(){
         //each url index respectively to thread serial number
@@ -87,7 +100,6 @@ public class manager {
     }
 
     public static void startWorkers(){
-
         for(int i = 0 ; i <THREADS.length ; i++){
             THREADS[i].start();
         }
@@ -95,7 +107,7 @@ public class manager {
 
     public static void startWriter(){
         File destFile = createDestFile(URL_LIST.get(0));
-        WRITER = new Thread(new Writer(CONTENT_QUEUE, FILE_LEN, destFile));
+        WRITER = new Thread(new Writer(CONTENT_QUEUE, FILE_LEN, destFile, METADATA));
         WRITER.start();
 
     }
@@ -114,5 +126,9 @@ public class manager {
         }
 
         return file;
+    }
+
+    public static void initMetadata(int NUM_TOTAL_PIRECES){
+        METADATA = new Metadata(NUM_TOTAL_PIRECES);
     }
 }
