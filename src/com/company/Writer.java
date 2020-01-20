@@ -36,8 +36,8 @@ public class Writer implements Runnable {
 
             }
             System.out.print("[");
-            for(int i = 0; i < metadata.pieceMap.length; i++){
-                System.out.print(metadata.pieceMap[i] +", ");
+            for(int i = 0; i < (metadata.pieceMap.bitmap).length; i++){
+                System.out.print(metadata.pieceMap.bitmap[i] +", ");
             }
             System.out.println("]");
 
