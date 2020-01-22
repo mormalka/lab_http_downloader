@@ -63,7 +63,11 @@ public class Metadata {
             Path temp_path = temp_file.toPath();
             Path metadata_path = metadata_file.toPath();
 
-            Files.move(temp_path,metadata_path, StandardCopyOption.ATOMIC_MOVE);
+            try{
+                Files.move(temp_path,metadata_path, StandardCopyOption.ATOMIC_MOVE);
+            } catch (IOException e) {
+                System.err.println("move function error " +e.getMessage());
+            }
 
 
         } catch(IOException e) {
