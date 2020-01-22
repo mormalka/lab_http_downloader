@@ -5,7 +5,6 @@ import java.util.ArrayList;
 public class DataPiece {
     public int size;
     public int offset;
-//    private int serialNumber;
     public byte[] content;
     public int id;
 

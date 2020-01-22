@@ -83,16 +83,17 @@ public class Worker implements Runnable{
                     }
                 }
 
-//                System.out.println("piece size:" + piece_size);
-
-                int currrent_byte;
-                byte[] input_piece = new byte[piece_size];
-                for(int i = 0; i < piece_size; i++){
-                    if((currrent_byte = in.read()) == -1) break;
-                    input_piece[i] = (byte) currrent_byte;
+                // check if piece allready transfered to writer according to metadata - in case of resume download
+                if(!(metadata.pieceMap.bitmap[firstPieceId])) {
+                    int currrent_byte;
+                    byte[] input_piece = new byte[piece_size];
+                    for (int i = 0; i < piece_size; i++) {
+                        if ((currrent_byte = in.read()) == -1) break;
+                        input_piece[i] = (byte) currrent_byte;
+                    }
+                    DataPiece current_piece = new DataPiece(offset, input_piece, piece_size, firstPieceId);
+                    queue.add(current_piece);
                 }
-                DataPiece current_piece = new DataPiece(offset, input_piece, piece_size, firstPieceId);
-                queue.add(current_piece);
                 inputRead += piece_size;
                 offset += piece_size;
                 firstPieceId++;

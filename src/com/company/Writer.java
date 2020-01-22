@@ -9,7 +9,7 @@ public class Writer implements Runnable {
 
     public BlockingQueue<DataPiece>queue;
     public int file_len;
-    public int numOfReadBytes = 0; //num of bytes that the writer already read
+    public int numOfReadBytes; //num of bytes that the writer already read
     public File dest_file;
     public Metadata metadata;
     public boolean isWriterFinished = false;
@@ -19,7 +19,9 @@ public class Writer implements Runnable {
         this.file_len = file_len;
         this.dest_file = file;
         this.metadata = metadata;
+        this.numOfReadBytes = getNumOfReadBytes();
     }
+
 
     @Override
     public void run() {
@@ -56,6 +58,15 @@ public class Writer implements Runnable {
             return;
         }
 
+    }
+
+    public int getNumOfReadBytes(){
+        if(this.metadata.isFirstRun) return 0; //in case of resume continue to the loop
+        int count = 0;
+        for (int i = 0; i < this.metadata.pieceMap.bitmap.length; i++){
+            if(this.metadata.pieceMap.bitmap[i]) count++;
+        }
+        return count;
     }
 
     public boolean isWriterFinished(){

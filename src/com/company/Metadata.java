@@ -9,19 +9,20 @@ import java.nio.file.StandardCopyOption;
 public class Metadata {
 
     public PieceMap pieceMap;
-    public String metadata_filename = "mapBackup";
-    public String temp_filename = "temp_mapBackup";
     public File temp_file;
     public File metadata_file;
+    public boolean isFirstRun = true;
 
 
     public Metadata (int numberOfPieces, String downloadedFileName){
         String currentDir = new File("").getAbsolutePath();
-        this.metadata_file = new File(currentDir + "\\" + downloadedFileName + ".metadata");
+//        this.metadata_file = new File(currentDir + "\\" + downloadedFileName + ".metadata");
+        this.metadata_file = new File("C:\\test" + "\\" + downloadedFileName + ".metadata");
         System.out.println("***PATH: "  + this.metadata_file.getAbsolutePath());
 
         if(this.metadata_file.exists()){
            readPieceMapFromDisk();
+            isFirstRun = false;
         } else {
             this.pieceMap = new PieceMap(numberOfPieces);
             try {
@@ -31,7 +32,7 @@ public class Metadata {
             }
         }
 
-        this.temp_file = new File(currentDir + "\\" + downloadedFileName + ".temp_metadata");
+        this.temp_file = new File("C:\\test" + "\\" + downloadedFileName + ".temp_metadata");
         if(!(this.temp_file.exists())){
             try {
                 this.temp_file.createNewFile();
