@@ -14,12 +14,12 @@ public class Worker implements Runnable{
     private int serialNumber;
     private String url_str;
     private BlockingQueue<DataPiece> queue;
-    private int piece_size = 4096 ;
     private int firstPieceId;
     private Metadata metadata;
+    private int piece_size;
 
 
-    public Worker(int rangeToRead, int offset, int serialNumber,String url_str,BlockingQueue<DataPiece> blocking_queue, int firstPieceId, Metadata metadata){
+    public Worker(int rangeToRead, int offset, int serialNumber,String url_str,BlockingQueue<DataPiece> blocking_queue, int firstPieceId, Metadata metadata, int piece_size){
 
         this.rangeToRead = rangeToRead;
         this.offset = offset;
@@ -28,6 +28,7 @@ public class Worker implements Runnable{
         this.queue = blocking_queue;
         this.firstPieceId = firstPieceId;
         this.metadata = metadata;
+        this.piece_size = piece_size;
 
         System.out.println(" rangeToRead- " + rangeToRead + " offset- " +  offset + " serialNumber- " + serialNumber + "  url_str- " +  url_str);
     }

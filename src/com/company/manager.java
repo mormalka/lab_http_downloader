@@ -1,8 +1,6 @@
 package com.company;
 
 
-import java.io.DataOutputStream;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -19,8 +17,8 @@ public class manager {
     public static Thread[] THREADS;
     public static BlockingQueue<DataPiece> CONTENT_QUEUE = new LinkedBlockingQueue<>();
     public static Thread  WRITER;
-    public static int PIECE_SIZE = 4096;
-    public static int NUM_TOTAL_PIRECES;
+    public static int PIECE_SIZE =8192;
+    public static int NAM_TOTAL_PIECES;
     public static Metadata METADATA;
 
     public static void setFileLength (String url_str){
@@ -61,13 +59,13 @@ public class manager {
 
         THREADS = new Thread[THREAD_CONNECTIONS];
 
-        NUM_TOTAL_PIRECES = totalPieces;
+        NAM_TOTAL_PIECES = totalPieces;
         if((FILE_LEN % PIECE_SIZE) != 0)
-            NUM_TOTAL_PIRECES++;
+            NAM_TOTAL_PIECES++;
 
-        System.out.println("NUM_TOTAL_PIRECES :" + NUM_TOTAL_PIRECES);
+        System.out.println("NUM_TOTAL_PIRECES :" + NAM_TOTAL_PIECES);
 
-        initMetadata(NUM_TOTAL_PIRECES);
+        initMetadata(NAM_TOTAL_PIECES);
 
         int offset = 0;
         int i;
@@ -76,13 +74,13 @@ public class manager {
 
         int firstPieceId = 0; // for pieces id (for metadata array)
         for (i = 0; i < THREAD_CONNECTIONS -1; i++){
-            Worker worker = new Worker(rangeToRead,offset,i,urls[i],CONTENT_QUEUE, firstPieceId, METADATA);
+            Worker worker = new Worker(rangeToRead,offset,i,urls[i],CONTENT_QUEUE, firstPieceId, METADATA, PIECE_SIZE);
             THREADS[i] = new Thread(worker);
             offset += rangeToRead; //start point of the next thread to read from file
             firstPieceId += workerPieces;
         }
         // last worker will read the reminder of the file
-        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (FILE_LEN % PIECE_SIZE) ,offset,i,urls[i],CONTENT_QUEUE, firstPieceId, METADATA);
+        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (FILE_LEN % PIECE_SIZE) ,offset,i,urls[i],CONTENT_QUEUE, firstPieceId, METADATA,PIECE_SIZE);
         THREADS[i] = new Thread(worker);
     }
 
