@@ -13,23 +13,29 @@ public class Writer implements Runnable {
     public File dest_file;
     public Metadata metadata;
     public boolean isWriterFinished = false;
+    public int downloadPrecentage;
 
     public Writer (BlockingQueue<DataPiece> queue, int file_len, File file, Metadata metadata){
         this.queue = queue;
         this.file_len = file_len;
         this.dest_file = file;
         this.metadata = metadata;
-        this.numOfReadBytes = getNumOfReadBytes();
+        this.numOfReadBytes = 0;
+        this.downloadPrecentage = getPercentageCompleted();
     }
 
 
     @Override
     public void run() {
         System.out.println("Writer's running..."); // REMOVE
+        if(metadata.isFirstRun){
+            System.out.println("Downloaded 0%"); //CHANGE TO ERR
+        }
         try{
             RandomAccessFile randomAccess = new RandomAccessFile(dest_file, "rw");
             while(numOfReadBytes < file_len){
                 if(!this.queue.isEmpty()){
+                    printPercentageCompleted();
                     DataPiece dataPiece = queue.poll();
                     randomAccess.seek(dataPiece.offset);
                     randomAccess.write(dataPiece.content);
@@ -39,12 +45,9 @@ public class Writer implements Runnable {
 
             }
             this.isWriterFinished = true;
+            printPercentageCompleted();
+            System.out.println("Download succeeded"); // CHANGE TO ERR
             metadata.printMap();
-//            System.out.print("[");
-//            for(int i = 0; i < (metadata.pieceMap.bitmap).length; i++){
-//                System.out.print(metadata.pieceMap.bitmap[i] +", ");
-//            }
-//            System.out.println("]");
 
             System.out.print("from writer: [");
             for(int i = 0; i < (metadata.pieceMap.bitmap).length; i++){
@@ -60,8 +63,8 @@ public class Writer implements Runnable {
 
     }
 
-    public int getNumOfReadBytes(){
-        if(this.metadata.isFirstRun) return 0; //in case of resume continue to the loop
+    public int getNumOfReadPieces(){
+//        if(this.metadata.isFirstRun) return 0; //in case of resume continue to the loop
         int count = 0;
         for (int i = 0; i < this.metadata.pieceMap.bitmap.length; i++){
             if(this.metadata.pieceMap.bitmap[i]) count++;
@@ -69,7 +72,20 @@ public class Writer implements Runnable {
         return count;
     }
 
+    public int getPercentageCompleted(){
+        int percentage = (getNumOfReadPieces()*100) / this.metadata.pieceMap.bitmap.length;
+        return percentage;
+    }
+
     public boolean isWriterFinished(){
      return isWriterFinished;
+    }
+
+    public void printPercentageCompleted(){
+        int currentPercentage = getPercentageCompleted();
+        if (currentPercentage > this.downloadPrecentage){ // the percentage is rounded down into int
+            System.out.println("Downloaded " + currentPercentage  + "%"); // CHANGE TO ERR
+        }
+        this.downloadPrecentage = currentPercentage;
     }
 }
