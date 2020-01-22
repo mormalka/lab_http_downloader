@@ -1,5 +1,6 @@
 package com.company;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,11 +13,12 @@ public class Metadata {
     public String temp_filename = "temp_mapBackup";
     public File temp_file;
     public File metadata_file;
-//    public String filename;
 
-    public Metadata (int numberOfPieces){
-//        this.metadata_file = new File("./" + "mapBackup.txt");
-        this.metadata_file = new File("C:\\Test\\" + "mapBackup");
+
+    public Metadata (int numberOfPieces, String downloadedFileName){
+        String currentDir = new File("").getAbsolutePath();
+        this.metadata_file = new File(currentDir + "\\" + downloadedFileName + ".metadata");
+        System.out.println("***PATH: "  + this.metadata_file.getAbsolutePath());
 
         if(this.metadata_file.exists()){
            readPieceMapFromDisk();
@@ -29,7 +31,7 @@ public class Metadata {
             }
         }
 
-        this.temp_file = new File("C:\\Test\\" + "temp_mapBackup");
+        this.temp_file = new File(currentDir + "\\" + downloadedFileName + ".temp_metadata");
         if(!(this.temp_file.exists())){
             try {
                 this.temp_file.createNewFile();
@@ -48,7 +50,7 @@ public class Metadata {
         // Serialization for temp file
         try {
             //Saving of object in a file
-            FileOutputStream file = new FileOutputStream(this.temp_file);
+            FileOutputStream file = new FileOutputStream(this.temp_file.getAbsolutePath());
             ObjectOutputStream out = new ObjectOutputStream(file);
 
             // Method for serialization of object
@@ -75,7 +77,8 @@ public class Metadata {
         try
         {
             // Reading the object from a file
-            FileInputStream file = new FileInputStream("C:\\Test\\" + "mapBackup");
+//            FileInputStream file = new FileInputStream(this.metadata_file);
+            FileInputStream file = new FileInputStream(this.metadata_file);
             ObjectInputStream in = new ObjectInputStream(file);
 
             // Method for deserialization of object

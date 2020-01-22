@@ -112,9 +112,9 @@ public class manager {
     }
 
     public static File createDestFile(String url){
-        String[] splittedUrl = url.split("/");
-        String name = splittedUrl[splittedUrl.length - 1];
-        String path = "C:\\Test\\" + name; // CHANGE TO CURRENT
+        String name = getDownloadFileName(url);
+        String currentDir = new File("").getAbsolutePath();
+        String path = currentDir + "/" + name;
         File file = new File(path);
 
         try {
@@ -127,7 +127,15 @@ public class manager {
         return file;
     }
 
-    public static void initMetadata(int NUM_TOTAL_PIECES){
-        METADATA = new Metadata(NUM_TOTAL_PIECES);
+    public static String getDownloadFileName(String url) {
+        String[] splittedUrl = url.split("/");
+        String name = splittedUrl[splittedUrl.length - 1];
+        return name;
+    }
+
+    public static void initMetadata(int NUM_TOTAL_PIECES)
+    {
+        String downloadedFileName = getDownloadFileName(URL_LIST.get(0));
+        METADATA = new Metadata(NUM_TOTAL_PIECES, downloadedFileName);
     }
 }
