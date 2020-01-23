@@ -116,12 +116,15 @@ public class manager {
         String currentDir = new File("").getAbsolutePath();
         String path = currentDir + "/" + name;
         File file = new File(path);
+        // in case of resume
+        if(file.exists()){
+            return file;
+        }
 
         try {
             file.createNewFile();
         } catch (IOException e){
-            System.err.println("Creating new file failed " + e.getMessage() + ",Download failed");
-            //return ?????
+            System.err.println("Creating new file failed " + e.getMessage() + ", Download failed");
         }
 
         return file;
