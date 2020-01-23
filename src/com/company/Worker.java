@@ -67,7 +67,7 @@ public class Worker implements Runnable{
     public void readContent(HttpURLConnection connection) throws IOException {
 
         System.out.println("read content was called");
-
+        
         InputStream in = null;
         ArrayList<Integer> content = new ArrayList<>();
         try {
