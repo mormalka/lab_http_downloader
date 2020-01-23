@@ -74,13 +74,13 @@ public class Manager {
 
         int firstPieceId = 0; // for pieces id (for metadata array)
         for (i = 0; i < THREAD_CONNECTIONS -1; i++){
-            Worker worker = new Worker(rangeToRead,offset,i,urls[i], this.content_queue, firstPieceId, this.metadata, PIECE_SIZE, this);
+            Worker worker = new Worker(rangeToRead,offset,urls[i], this.content_queue, firstPieceId, this.metadata, PIECE_SIZE, this);
             this.threads[i] = new Thread(worker);
             offset += rangeToRead; //start point of the next thread to read from file
             firstPieceId += workerPieces;
         }
         // last worker will read the reminder of the file
-        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (this.file_len % PIECE_SIZE) ,offset,i,urls[i],this.content_queue, firstPieceId, this.metadata ,PIECE_SIZE, this);
+        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (this.file_len % PIECE_SIZE) ,offset,urls[i],this.content_queue, firstPieceId, this.metadata ,PIECE_SIZE, this);
         this.threads[i] = new Thread(worker);
     }
 

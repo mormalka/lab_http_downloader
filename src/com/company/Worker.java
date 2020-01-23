@@ -11,7 +11,7 @@ import java.util.concurrent.BlockingQueue;
 public class Worker implements Runnable{
     private int rangeToRead;
     private int offset;
-    private int serialNumber;
+    private int id;
     private String url_str;
     private BlockingQueue<DataPiece> queue;
     private int firstPieceId;
@@ -20,11 +20,10 @@ public class Worker implements Runnable{
     private Manager manager;
 
 
-    public Worker(int rangeToRead, int offset, int serialNumber,String url_str,BlockingQueue<DataPiece> blocking_queue, int firstPieceId, Metadata metadata, int piece_size, Manager manager){
+    public Worker(int rangeToRead, int offset,String url_str,BlockingQueue<DataPiece> blocking_queue, int firstPieceId, Metadata metadata, int piece_size, Manager manager){
 
         this.rangeToRead = rangeToRead;
         this.offset = offset;
-        this.serialNumber = serialNumber;
         this.url_str = url_str;
         this.queue = blocking_queue;
         this.firstPieceId = firstPieceId;
@@ -32,7 +31,7 @@ public class Worker implements Runnable{
         this.piece_size = piece_size;
         this.manager = manager;
 
-        System.out.println(" rangeToRead- " + rangeToRead + " offset- " +  offset + " serialNumber- " + serialNumber + "  url_str- " +  url_str);
+        System.out.println(" rangeToRead- " + rangeToRead + " offset- " +  offset + " serialNumber- " + id + "  url_str- " +  url_str);
     }
 
     @Override
@@ -40,6 +39,7 @@ public class Worker implements Runnable{
         HttpURLConnection connection = null;
         //Creates the connection
         try {
+            this.id = (int)(Thread.currentThread().getId()); ////////////MOR
             URL url = new URL(this.url_str);
             connection = (HttpURLConnection) url.openConnection();
             //Create a string which defines the range value
@@ -51,9 +51,11 @@ public class Worker implements Runnable{
             //getting the content of file receives from the request (in the defined range)
             this.readContent(connection);
 
-        } catch (Exception e) {
+
+        } catch (IOException e) {
             System.err.println("HTTP request failed " + e.getMessage() + ",Download failed");
-            return;
+            //return; ////////////MOR
+
         }finally {
             if (connection != null) {
                 connection.disconnect();
@@ -78,7 +80,6 @@ public class Worker implements Runnable{
                         this.piece_size = this.rangeToRead - inputRead; //only the last piece of the last thread will change size
                     }
                 }
-
                 // check if piece allready transfered to writer according to metadata - in case of resume download
                 if(!(this.metadata.pieceMap.bitmap[this.firstPieceId])) {
                     int currrent_byte;
@@ -89,14 +90,20 @@ public class Worker implements Runnable{
                     }
                     DataPiece current_piece = new DataPiece(this.offset, input_piece, this.piece_size, this.firstPieceId);
                     this.queue.add(current_piece);
+                }else{
+                    in.skip(this.piece_size);
                 }
+
                 inputRead += this.piece_size;
                 this.offset += this.piece_size;
                 this.firstPieceId++;
             }
 
         } catch (IOException e) {
+            //calling manager to handle errors
+            System.err.println("IO Exception while reading content" + e.getMessage() + ",Download failed");
             this.manager.handleErrors(e);
+
         }finally {
             if(in != null)
                 in.close();
