@@ -46,6 +46,7 @@ public class Writer implements Runnable {
                 }
 
             }
+            this.metadata.metadata_file.delete();
             this.isWriterFinished = true;
             printAndUpdatePercentageCompleted();
             System.out.println("Download succeeded"); // CHANGE TO ERR

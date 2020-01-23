@@ -107,7 +107,7 @@ public class Worker implements Runnable{
             System.err.println("IO Exception while reading content" + e.getMessage() + ",Download failed");
             this.manager.handleErrors(e);
 
-        }finally {
+        } finally {
             if(in != null)
                 in.close();
         }
