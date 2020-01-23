@@ -8,11 +8,12 @@ public class Main {
 
     public static void main(String[] args){
 
+        Manager manager = new Manager();
         int thread_Connections = 1; //default single connection thread
 
         if (args.length < 1 || args.length > 2){
             System.err.println("java IdcDm URL|URL-LIST-FILE [MAX-CONCURRENT-CONNECTIONS]");
-            // return;
+            return;
         }
 
         if (args.length > 1){ //get the number of thread connections given by the user
@@ -47,7 +48,7 @@ public class Main {
             manager.setFileLength(url_list.get(0));
             manager.setUrlList(url_list);
 
-        } else{ //handle single url
+        } else { //handle single url
             String url_str = args[0];
             //send a HEAD request to the given url and set the file length
             manager.setFileLength(url_str);

@@ -9,19 +9,20 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class manager {
+public class Manager {
 
-    public static int FILE_LEN = 0;
-    public static int THREAD_CONNECTIONS = 0;
-    public static List<String> URL_LIST;
-    public static Thread[] THREADS;
-    public static BlockingQueue<DataPiece> CONTENT_QUEUE = new LinkedBlockingQueue<>();
-    public static Thread  WRITER;
-    public static int PIECE_SIZE =8192;
-    public static int NAM_TOTAL_PIECES;
-    public static Metadata METADATA;
+    public int file_len = 0;
+    public int THREAD_CONNECTIONS = 0;
+    public List<String> URL_LIST;
+    public Thread[] threads;
+    public BlockingQueue<DataPiece> content_queue = new LinkedBlockingQueue<>();
+    public Thread writer;
+    public int PIECE_SIZE = 8192;
+    public int NUM_TOTAL_PIECES;
+    public Metadata metadata;
 
-    public static void setFileLength (String url_str){
+
+    public void setFileLength (String url_str){
         HttpURLConnection connection = null;
         //Creates the connection
         try {
@@ -30,42 +31,41 @@ public class manager {
             connection.setRequestMethod("HEAD"); //Send request
 
             //Assume the server knows the content length
-            FILE_LEN = connection.getContentLength();
-            System.out.println("file length " + FILE_LEN);
+            this.file_len = connection.getContentLength();
+            System.out.println("file length " + this.file_len);
 
         } catch (Exception e) {
             e.printStackTrace();
             return;
-        }finally {
+        } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
     }
 
-    public static void setNumOfConnection(int n){
+    public void setNumOfConnection(int n){
         //TODO
         THREAD_CONNECTIONS = n;
     }
 
-    public static void setUrlList(List<String> urls){
+    public void setUrlList(List<String> urls){
         URL_LIST = urls;
     }
 
-    public static void initWorkers(){
-        int totalPieces = FILE_LEN / PIECE_SIZE;
+    public void initWorkers(){
+        int totalPieces = this.file_len / PIECE_SIZE;
         int workerPieces = totalPieces / THREAD_CONNECTIONS;
         int rangeToRead = PIECE_SIZE*workerPieces ;
 
-        THREADS = new Thread[THREAD_CONNECTIONS];
+        this.threads = new Thread[THREAD_CONNECTIONS];
 
-        NAM_TOTAL_PIECES = totalPieces;
-        if((FILE_LEN % PIECE_SIZE) != 0)
-            NAM_TOTAL_PIECES++;
+        NUM_TOTAL_PIECES = totalPieces;
+        if((this.file_len % PIECE_SIZE) != 0) NUM_TOTAL_PIECES++;
 
-        System.out.println("NUM_TOTAL_PIRECES :" + NAM_TOTAL_PIECES);
+        System.out.println("NUM_TOTAL_PIRECES :" + NUM_TOTAL_PIECES);
 
-        initMetadata(NAM_TOTAL_PIECES);
+        initMetadata(NUM_TOTAL_PIECES);
 
         int offset = 0;
         int i;
@@ -74,19 +74,19 @@ public class manager {
 
         int firstPieceId = 0; // for pieces id (for metadata array)
         for (i = 0; i < THREAD_CONNECTIONS -1; i++){
-            Worker worker = new Worker(rangeToRead,offset,i,urls[i],CONTENT_QUEUE, firstPieceId, METADATA, PIECE_SIZE);
-            THREADS[i] = new Thread(worker);
+            Worker worker = new Worker(rangeToRead,offset,i,urls[i], this.content_queue, firstPieceId, this.metadata, PIECE_SIZE, this);
+            this.threads[i] = new Thread(worker);
             offset += rangeToRead; //start point of the next thread to read from file
             firstPieceId += workerPieces;
         }
         // last worker will read the reminder of the file
-        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (FILE_LEN % PIECE_SIZE) ,offset,i,urls[i],CONTENT_QUEUE, firstPieceId, METADATA,PIECE_SIZE);
-        THREADS[i] = new Thread(worker);
+        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (this.file_len % PIECE_SIZE) ,offset,i,urls[i],this.content_queue, firstPieceId, this.metadata ,PIECE_SIZE, this);
+        this.threads[i] = new Thread(worker);
     }
 
 
 
-    public static String[] distributeUrl(){
+    public String[] distributeUrl(){
         //each url index respectively to thread serial number
         String[] urls = new String[THREAD_CONNECTIONS];
         int j = 0;
@@ -98,17 +98,16 @@ public class manager {
         return urls;
     }
 
-    public static void startWorkers(){
-        for(int i = 0 ; i <THREADS.length ; i++){
-            THREADS[i].start();
+    public void startWorkers(){
+        for(int i = 0 ; i <this.threads.length ; i++){
+            this.threads[i].start();
         }
     }
 
-    public static void startWriter(){
+    public void startWriter(){
         File destFile = createDestFile(URL_LIST.get(0));
-        WRITER = new Thread(new Writer(CONTENT_QUEUE, FILE_LEN, destFile, METADATA));
-        WRITER.start();
-
+        this.writer = new Thread(new Writer(this.content_queue, this.file_len, destFile, this.metadata, this));
+        this.writer.start();
     }
 
     public static File createDestFile(String url){
@@ -118,6 +117,7 @@ public class manager {
         File file = new File(path);
         // in case of resume
         if(file.exists()){
+            System.out.println("$$$$$$$ file exist");
             return file;
         }
 
@@ -136,9 +136,13 @@ public class manager {
         return name;
     }
 
-    public static void initMetadata(int NUM_TOTAL_PIECES)
+    public void initMetadata(int NUM_TOTAL_PIECES)
     {
         String downloadedFileName = getDownloadFileName(URL_LIST.get(0));
-        METADATA = new Metadata(NUM_TOTAL_PIECES, downloadedFileName);
+        this.metadata = new Metadata(NUM_TOTAL_PIECES, downloadedFileName);
+    }
+
+    public void handleErrors(Exception e){
+        System.exit(1); //didn't finish successfully - status 1
     }
 }

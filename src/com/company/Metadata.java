@@ -43,7 +43,6 @@ public class Metadata {
     public void approvePiece(int pieceId){
         pieceMap.bitmap[pieceId] = true;
         writePieceMapToDisk();
-
     }
 
     public void writePieceMapToDisk(){

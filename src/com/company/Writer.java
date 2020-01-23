@@ -14,14 +14,16 @@ public class Writer implements Runnable {
     public Metadata metadata;
     public boolean isWriterFinished = false;
     public int downloadPrecentage;
+    public Manager manager;
 
-    public Writer (BlockingQueue<DataPiece> queue, int file_len, File file, Metadata metadata){
+    public Writer (BlockingQueue<DataPiece> queue, int file_len, File file, Metadata metadata, Manager manager){
         this.queue = queue;
         this.file_len = file_len;
         this.dest_file = file;
         this.metadata = metadata;
         this.numOfReadBytes = 0;
         this.downloadPrecentage = getPercentageCompleted();
+        this.manager = manager;
     }
 
 
@@ -31,21 +33,21 @@ public class Writer implements Runnable {
         if(metadata.isFirstRun){
             System.out.println("Downloaded 0%"); //CHANGE TO ERR
         }
-        try{
+        try {
             RandomAccessFile randomAccess = new RandomAccessFile(dest_file, "rw");
-            while(numOfReadBytes < file_len){
+            while(this.downloadPrecentage < 100){
                 if(!this.queue.isEmpty()){
-                    printPercentageCompleted();
                     DataPiece dataPiece = queue.poll();
                     randomAccess.seek(dataPiece.offset);
                     randomAccess.write(dataPiece.content);
                     this.metadata.approvePiece(dataPiece.id);
                     numOfReadBytes += dataPiece.size;
+                    printAndUpdatePercentageCompleted();
                 }
 
             }
             this.isWriterFinished = true;
-            printPercentageCompleted();
+            printAndUpdatePercentageCompleted();
             System.out.println("Download succeeded"); // CHANGE TO ERR
             metadata.printMap();
 
@@ -81,7 +83,7 @@ public class Writer implements Runnable {
      return isWriterFinished;
     }
 
-    public void printPercentageCompleted(){
+    public void printAndUpdatePercentageCompleted(){
         int currentPercentage = getPercentageCompleted();
         if (currentPercentage > this.downloadPrecentage){ // the percentage is rounded down into int
             System.out.println("Downloaded " + currentPercentage  + "%"); // CHANGE TO ERR

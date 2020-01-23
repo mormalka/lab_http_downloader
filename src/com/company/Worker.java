@@ -17,9 +17,10 @@ public class Worker implements Runnable{
     private int firstPieceId;
     private Metadata metadata;
     private int piece_size;
+    private Manager manager;
 
 
-    public Worker(int rangeToRead, int offset, int serialNumber,String url_str,BlockingQueue<DataPiece> blocking_queue, int firstPieceId, Metadata metadata, int piece_size){
+    public Worker(int rangeToRead, int offset, int serialNumber,String url_str,BlockingQueue<DataPiece> blocking_queue, int firstPieceId, Metadata metadata, int piece_size, Manager manager){
 
         this.rangeToRead = rangeToRead;
         this.offset = offset;
@@ -29,6 +30,7 @@ public class Worker implements Runnable{
         this.firstPieceId = firstPieceId;
         this.metadata = metadata;
         this.piece_size = piece_size;
+        this.manager = manager;
 
         System.out.println(" rangeToRead- " + rangeToRead + " offset- " +  offset + " serialNumber- " + serialNumber + "  url_str- " +  url_str);
     }
@@ -43,17 +45,11 @@ public class Worker implements Runnable{
             //Create a string which defines the range value
             String range_value = "bytes=" + this.offset + "-" + (this.offset + this.rangeToRead);
 
-            //System.out.println("range value " + range_value);
-
             connection.setRequestProperty("Range", range_value); //set the range value in the header
-
             connection.setRequestMethod("GET"); //Firing the GET request
-            //System.out.println(connection.getHeaderField("Content-Range"));
 
             //getting the content of file receives from the request (in the defined range)
-            readContent(connection, this.rangeToRead, this.piece_size, this.offset, this.queue, this.firstPieceId, this.metadata);
-
-            System.out.println("queue size:" + queue.size());
+            this.readContent(connection);
 
         } catch (Exception e) {
             System.err.println("HTTP request failed " + e.getMessage() + ",Download failed");
@@ -66,7 +62,7 @@ public class Worker implements Runnable{
 
     }
 
-    public static void readContent(HttpURLConnection connection, int rangeToRead, int piece_size, int offset, BlockingQueue<DataPiece> queue, int firstPieceId, Metadata metadata) throws IOException {
+    public void readContent(HttpURLConnection connection) throws IOException {
 
         System.out.println("read content was called");
 
@@ -75,32 +71,32 @@ public class Worker implements Runnable{
         try {
             in = connection.getInputStream();
             int inputRead = 0;
-            while (inputRead < rangeToRead){
+            while (inputRead < this.rangeToRead){
                 //check if this is the last thread
-                if((rangeToRead % piece_size) != 0){
-                    if ((rangeToRead - inputRead) < piece_size) {
-                        piece_size = rangeToRead - inputRead; //only the last piece of the last thread will change size
+                if((this.rangeToRead % this.piece_size) != 0){
+                    if ((this.rangeToRead - inputRead) < this.piece_size) {
+                        this.piece_size = this.rangeToRead - inputRead; //only the last piece of the last thread will change size
                     }
                 }
 
                 // check if piece allready transfered to writer according to metadata - in case of resume download
-                if(!(metadata.pieceMap.bitmap[firstPieceId])) {
+                if(!(this.metadata.pieceMap.bitmap[this.firstPieceId])) {
                     int currrent_byte;
                     byte[] input_piece = new byte[piece_size];
-                    for (int i = 0; i < piece_size; i++) {
+                    for (int i = 0; i < this.piece_size; i++) {
                         if ((currrent_byte = in.read()) == -1) break;
                         input_piece[i] = (byte) currrent_byte;
                     }
-                    DataPiece current_piece = new DataPiece(offset, input_piece, piece_size, firstPieceId);
-                    queue.add(current_piece);
+                    DataPiece current_piece = new DataPiece(this.offset, input_piece, this.piece_size, this.firstPieceId);
+                    this.queue.add(current_piece);
                 }
-                inputRead += piece_size;
-                offset += piece_size;
-                firstPieceId++;
+                inputRead += this.piece_size;
+                this.offset += this.piece_size;
+                this.firstPieceId++;
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            this.manager.handleErrors(e);
         }finally {
             if(in != null)
                 in.close();
