@@ -40,6 +40,8 @@ public class Worker implements Runnable{
         //Creates the connection
         try {
             this.id = (int)(Thread.currentThread().getId()); ////////////MOR
+            System.out.println("[" + this.id + "] Start downloading range (" + this.offset + " - " + (this.offset+this.rangeToRead) +") from:\n" + this.url_str);
+
             URL url = new URL(this.url_str);
             connection = (HttpURLConnection) url.openConnection();
             //Create a string which defines the range value
@@ -58,6 +60,7 @@ public class Worker implements Runnable{
 
         }finally {
             if (connection != null) {
+                System.out.println("[" + this.id + "] Finished downloading");
                 connection.disconnect();
             }
         }
@@ -67,7 +70,7 @@ public class Worker implements Runnable{
     public void readContent(HttpURLConnection connection) throws IOException {
 
         System.out.println("read content was called");
-        
+
         InputStream in = null;
         ArrayList<Integer> content = new ArrayList<>();
         try {
