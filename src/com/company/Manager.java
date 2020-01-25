@@ -4,6 +4,7 @@ package com.company;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -17,7 +18,7 @@ public class Manager {
     public Thread[] threads;
     public BlockingQueue<DataPiece> content_queue = new LinkedBlockingQueue<>();
     public Thread writer;
-    public int PIECE_SIZE = 8192;
+    public int PIECE_SIZE = 8192; // Splitting the download into pieces
     public int NUM_TOTAL_PIECES;
     public Metadata metadata;
 
@@ -32,11 +33,14 @@ public class Manager {
 
             //Assume the server knows the content length
             this.file_len = connection.getContentLength();
-            System.out.println("file length " + this.file_len);
+            System.out.println("file length " + this.file_len); //REMOVE
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
+        } catch (MalformedURLException e){
+            System.err.println("Incorrect URL. Download failed.");
+
+        } catch (IOException ie) {
+            System.err.println("Failed to connect " + ie.getMessage() + " Download faild.");
+            this.handleErrors(ie);
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -62,8 +66,6 @@ public class Manager {
 
         NUM_TOTAL_PIECES = totalPieces;
         if((this.file_len % PIECE_SIZE) != 0) NUM_TOTAL_PIECES++;
-
-        System.out.println("NUM_TOTAL_PIRECES :" + NUM_TOTAL_PIECES);
 
         initMetadata(NUM_TOTAL_PIECES);
 
@@ -99,6 +101,7 @@ public class Manager {
     }
 
     public void startWorkers(){
+//        System.err.println("Downloading...");
         for(int i = 0 ; i <this.threads.length ; i++){
             this.threads[i].start();
         }

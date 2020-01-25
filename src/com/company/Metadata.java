@@ -15,13 +15,15 @@ public class Metadata {
 
     public Metadata (int numberOfPieces, String downloadedFileName){
         String currentDir = new File("").getAbsolutePath();
-//        this.metadata_file = new File(currentDir + "\\" + downloadedFileName + ".metadata");
-        this.metadata_file = new File("C:\\test" + "\\" + downloadedFileName + ".metadata");
-        System.out.println("***PATH: "  + this.metadata_file.getAbsolutePath());
+        this.metadata_file = new File(currentDir + "\\" + downloadedFileName + ".metadata");
+//        this.metadata_file = new File("C:\\test" + "\\" + downloadedFileName + ".metadata");
 
         if(this.metadata_file.exists()){
            readPieceMapFromDisk();
-            isFirstRun = false;
+           if(this.pieceMap == null || this.pieceMap.bitmap == null){ // ADI!!! TO SOLVE THE PROBLEM OF SITUATION OF CTRL+C BEFORE VENE 1% DOWLOADED
+               this.pieceMap = new PieceMap(numberOfPieces);
+           }
+           isFirstRun = false;
         } else {
             this.pieceMap = new PieceMap(numberOfPieces);
             try {
@@ -31,7 +33,8 @@ public class Metadata {
             }
         }
 
-        this.temp_file = new File("C:\\test" + "\\" + downloadedFileName + ".temp_metadata");
+//        this.temp_file = new File("C:\\test" + "\\" + downloadedFileName + ".temp_metadata");
+        this.temp_file = new File(currentDir + "\\" + downloadedFileName + ".temp_metadata");
         if(!(this.temp_file.exists())){
             try {
                 this.temp_file.createNewFile();
@@ -49,6 +52,7 @@ public class Metadata {
         // Serialization for temp file
         try {
             //Saving of object in a file
+//            FileOutputStream file = new FileOutputStream(this.temp_file.getAbsolutePath());
             FileOutputStream file = new FileOutputStream(this.temp_file.getAbsolutePath());
             ObjectOutputStream out = new ObjectOutputStream(file);
 
@@ -63,14 +67,24 @@ public class Metadata {
             Path metadata_path = metadata_file.toPath();
 
             try{
+//                Files.move(temp_path,metadata_path, StandardCopyOption.REPLACE_EXISTING);
                 Files.move(temp_path,metadata_path, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException e) {
-                System.err.println("move function error " +e.getMessage());
+                System.err.println("moving temp metadata file to metadata file action error " + e);
             }
+
+//            if(temp_file.exists()){
+//                temp_file.renameTo(metadata_file);
+//            }
+
 
 
         } catch(IOException e) {
             System.err.println("IOException is caught " + e);
+        } catch (SecurityException se){
+            System.err.println("SecurityException is caught " + se);
+        } catch (NullPointerException ne){
+            System.err.println("No destination parameter " + ne);
         }
     }
 
@@ -89,14 +103,11 @@ public class Metadata {
 
             in.close();
             file.close();
-
-            System.out.println("Object has been deserialized ");
-
         }
 
         catch(IOException | ClassNotFoundException ex)
         {
-            System.err.println("IOException is caught " + ex);
+            System.err.println("IOException is caught " + ex.getMessage());
         }
 
     }

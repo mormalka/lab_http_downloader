@@ -29,14 +29,13 @@ public class Writer implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Writer's running..."); // REMOVE
-        if(metadata.isFirstRun){
-            System.out.println("Downloaded 0%"); //CHANGE TO ERR
-        }
         try {
+            if(metadata.isFirstRun){
+                System.err.println("Downloaded 0%");
+            }
             RandomAccessFile randomAccess = new RandomAccessFile(dest_file, "rw");
-            while(this.downloadPrecentage < 100){
-                if(!this.queue.isEmpty()){
+            while (this.downloadPrecentage < 100) {
+                if (!this.queue.isEmpty()) {
                     DataPiece dataPiece = queue.poll();
                     randomAccess.seek(dataPiece.offset);
                     randomAccess.write(dataPiece.content);
@@ -46,17 +45,20 @@ public class Writer implements Runnable {
                 }
 
             }
+            System.err.println("Metadata file size: " + this.metadata.metadata_file.length()); // REMOVE
+
             this.metadata.metadata_file.delete();
             this.isWriterFinished = true;
             printAndUpdatePercentageCompleted();
-            System.out.println("Download succeeded"); // CHANGE TO ERR
-            metadata.printMap();
-
-            System.out.print("from writer: [");
-            for(int i = 0; i < (metadata.pieceMap.bitmap).length; i++){
-                System.out.print(metadata.pieceMap.bitmap[i] +", ");
-            }
-            System.out.println("]");
+            System.err.println("Download succeeded"); // CHANGE TO ERR
+//            metadata.printMap();
+//
+//            System.out.print("from writer: [");
+//
+//            for(int i = 0; i < (metadata.pieceMap.bitmap).length; i++){
+//                System.out.print(metadata.pieceMap.bitmap[i] +", ");
+//            }
+//            System.out.println("]");
 
 
         } catch (IOException e){
@@ -87,7 +89,7 @@ public class Writer implements Runnable {
     public void printAndUpdatePercentageCompleted(){
         int currentPercentage = getPercentageCompleted();
         if (currentPercentage > this.downloadPrecentage){ // the percentage is rounded down into int
-            System.out.println("Downloaded " + currentPercentage  + "%"); // CHANGE TO ERR
+            System.err.println("Downloaded " + currentPercentage  + "%"); // CHANGE TO ERR
         }
         this.downloadPrecentage = currentPercentage;
     }

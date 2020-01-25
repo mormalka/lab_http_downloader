@@ -1,10 +1,10 @@
 package com.company;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 
 
@@ -31,7 +31,7 @@ public class Worker implements Runnable{
         this.piece_size = piece_size;
         this.manager = manager;
 
-        System.out.println(" rangeToRead- " + rangeToRead + " offset- " +  offset + " serialNumber- " + id + "  url_str- " +  url_str);
+//        System.out.println(" rangeToRead- " + rangeToRead + " offset- " +  offset + " serialNumber- " + id + "  url_str- " +  url_str);
     }
 
     @Override
@@ -39,11 +39,12 @@ public class Worker implements Runnable{
         HttpURLConnection connection = null;
         //Creates the connection
         try {
-            this.id = (int)(Thread.currentThread().getId()); ////////////MOR
-            System.out.println("[" + this.id + "] Start downloading range (" + this.offset + " - " + (this.offset+this.rangeToRead) +") from:\n" + this.url_str);
+            this.id = (int) (Thread.currentThread().getId()); ////////////MOR
+            System.err.println("[" + this.id + "] Start downloading range (" + this.offset + " - " + (this.offset + this.rangeToRead) + ") from:\n" + this.url_str);
 
             URL url = new URL(this.url_str);
             connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(90000); // waits maximum for a minute and a half to available data to read from connection
             //Create a string which defines the range value
             String range_value = "bytes=" + this.offset + "-" + (this.offset + this.rangeToRead);
 
@@ -54,13 +55,21 @@ public class Worker implements Runnable{
             this.readContent(connection);
 
 
-        } catch (IOException e) {
-            System.err.println("HTTP request failed " + e.getMessage() + ",Download failed");
-            //return; ////////////MOR
+        } catch (MalformedURLException e) {
+            System.err.println("Incorrect URL. Download failed.");
+            return;
 
-        }finally {
+//        } catch (ProtocolException e) { //INTELLIJE SUGGESTED
+//            System.err.println("HTTP request failed " + e.getMessage() + "Download failed");
+//            manager.handleErrors(e);
+
+        } catch (IOException e) {
+            System.err.println("HTTP request failed " + e.getMessage() + "Download failed");
+            manager.handleErrors(e);
+
+        }  finally {
             if (connection != null) {
-                System.out.println("[" + this.id + "] Finished downloading");
+                System.err.println("[" + this.id + "] Finished downloading");
                 connection.disconnect();
             }
         }
@@ -68,11 +77,7 @@ public class Worker implements Runnable{
     }
 
     public void readContent(HttpURLConnection connection) throws IOException {
-
-        System.out.println("read content was called");
-
         InputStream in = null;
-        ArrayList<Integer> content = new ArrayList<>();
         try {
             in = connection.getInputStream();
             int inputRead = 0;
@@ -104,9 +109,8 @@ public class Worker implements Runnable{
 
         } catch (IOException e) {
             //calling manager to handle errors
-            System.err.println("IO Exception while reading content" + e.getMessage() + ",Download failed");
+            System.err.println("IO Exception while reading content " + e + " Download failed, problem server:" + this.url_str);
             this.manager.handleErrors(e);
-
         } finally {
             if(in != null)
                 in.close();
