@@ -48,6 +48,7 @@ public class Writer implements Runnable {
             System.err.println("Metadata file size: " + this.metadata.metadata_file.length()); // REMOVE
 
             this.metadata.metadata_file.delete();
+//            this.metadata.temp_file.delete(); ??
             this.isWriterFinished = true;
             printAndUpdatePercentageCompleted();
             System.err.println("Download succeeded"); // CHANGE TO ERR
@@ -69,7 +70,6 @@ public class Writer implements Runnable {
     }
 
     public int getNumOfReadPieces(){
-//        if(this.metadata.isFirstRun) return 0; //in case of resume continue to the loop
         int count = 0;
         for (int i = 0; i < this.metadata.pieceMap.bitmap.length; i++){
             if(this.metadata.pieceMap.bitmap[i]) count++;
@@ -89,7 +89,7 @@ public class Writer implements Runnable {
     public void printAndUpdatePercentageCompleted(){
         int currentPercentage = getPercentageCompleted();
         if (currentPercentage > this.downloadPrecentage){ // the percentage is rounded down into int
-            System.err.println("Downloaded " + currentPercentage  + "%"); // CHANGE TO ERR
+            System.err.println("Downloaded " + currentPercentage  + "%");
         }
         this.downloadPrecentage = currentPercentage;
     }

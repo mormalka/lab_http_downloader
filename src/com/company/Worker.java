@@ -44,7 +44,7 @@ public class Worker implements Runnable{
 
             URL url = new URL(this.url_str);
             connection = (HttpURLConnection) url.openConnection();
-            connection.setReadTimeout(90000); // waits maximum for a minute and a half to available data to read from connection
+            connection.setReadTimeout(30000); // waits maximum for half a minute to available data to read from connection
             //Create a string which defines the range value
             String range_value = "bytes=" + this.offset + "-" + (this.offset + this.rangeToRead);
 

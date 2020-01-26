@@ -16,7 +16,6 @@ public class Metadata {
     public Metadata (int numberOfPieces, String downloadedFileName){
         String currentDir = new File("").getAbsolutePath();
         this.metadata_file = new File(currentDir + "\\" + downloadedFileName + ".metadata");
-//        this.metadata_file = new File("C:\\test" + "\\" + downloadedFileName + ".metadata");
 
         if(this.metadata_file.exists()){
            readPieceMapFromDisk();
@@ -33,7 +32,6 @@ public class Metadata {
             }
         }
 
-//        this.temp_file = new File("C:\\test" + "\\" + downloadedFileName + ".temp_metadata");
         this.temp_file = new File(currentDir + "\\" + downloadedFileName + ".temp_metadata");
         if(!(this.temp_file.exists())){
             try {
@@ -53,7 +51,7 @@ public class Metadata {
         try {
             //Saving of object in a file
 //            FileOutputStream file = new FileOutputStream(this.temp_file.getAbsolutePath());
-            FileOutputStream file = new FileOutputStream(this.temp_file.getAbsolutePath());
+            FileOutputStream file = new FileOutputStream(this.temp_file);
             ObjectOutputStream out = new ObjectOutputStream(file);
 
             // Method for serialization of object
@@ -67,10 +65,9 @@ public class Metadata {
             Path metadata_path = metadata_file.toPath();
 
             try{
-//                Files.move(temp_path,metadata_path, StandardCopyOption.REPLACE_EXISTING);
                 Files.move(temp_path,metadata_path, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException e) {
-                System.err.println("moving temp metadata file to metadata file action error " + e);
+
             }
 
 //            if(temp_file.exists()){
@@ -94,7 +91,6 @@ public class Metadata {
         try
         {
             // Reading the object from a file
-//            FileInputStream file = new FileInputStream(this.metadata_file);
             FileInputStream file = new FileInputStream(this.metadata_file);
             ObjectInputStream in = new ObjectInputStream(file);
 
