@@ -37,7 +37,7 @@ public class Worker implements Runnable{
         HttpURLConnection connection = null;
         //Creates the connection
         try {
-            this.id = (int) (Thread.currentThread().getId()); ////////////MOR
+            this.id = (int) (Thread.currentThread().getId());
             System.err.println("[" + this.id + "] Start downloading range (" + this.offset + " - " + (this.offset + this.rangeToRead) + ") from:\n" + this.url_str);
 
             URL url = new URL(this.url_str);
