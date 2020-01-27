@@ -14,17 +14,20 @@ Runs the main of the java program
 Creates an instance of Manager which manage the download process.
 
 Manager:
-Initialize workers, single writer threads and metadta, exit the program (code 1) in case of a failer.
+Initialize workers, single writer threads and metadta, exit the program (code 1) in case of a failure.
 
 Worker:
-Create http connection, download range in DataPiece(constant size) and write it to blocking queue.
+Create http connection, download range of bytes in DataPieces(constant size) and write it to the blocking queue.
 
-Writer
+Writer:
 Reads DataPieces from blocking queue, write content into new file and maintin metadata (after every piece write).
 
-DataPiece
+PieceMap:
 A Serializable object, indicates the safe transfferd DataPieces which written by the writer.
 
-Metadata
-Indicated the download state, in case of first download or resume download. 
+DataPiece:
+object that represents a piece of the download data by id, content, size, and offset - the position in the file of the first byte the content holds. 
+
+Metadata:
+Indicates the download state in case of first download or resume download by holding a piece map object, writes it to the disk and read from it. 
 

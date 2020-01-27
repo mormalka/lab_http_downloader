@@ -103,7 +103,7 @@ public class Worker implements Runnable{
 
         } catch (IOException e) {
             //calling manager to handle errors
-            System.err.println("IO Exception while reading content from server. Download failed");
+            System.err.println("IO Exception while reading content from server. " + e.getMessage() + ". Download failed");
             this.manager.handleErrors();
         } finally {
             if(in != null)
