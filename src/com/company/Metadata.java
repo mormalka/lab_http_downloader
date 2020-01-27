@@ -19,7 +19,7 @@ public class Metadata {
 
         if(this.metadata_file.exists()){
            readPieceMapFromDisk();
-           if(this.pieceMap == null || this.pieceMap.bitmap == null){ // ADI!!! TO SOLVE THE PROBLEM OF SITUATION OF CTRL+C BEFORE VENE 1% DOWLOADED
+           if(this.pieceMap == null || this.pieceMap.bitmap == null){
                this.pieceMap = new PieceMap(numberOfPieces);
            }
            isFirstRun = false;
@@ -49,8 +49,7 @@ public class Metadata {
     public void writePieceMapToDisk(){
         // Serialization for temp file
         try {
-            //Saving of object in a file
-//            FileOutputStream file = new FileOutputStream(this.temp_file.getAbsolutePath());
+            //Saving object in a file
             FileOutputStream file = new FileOutputStream(this.temp_file);
             ObjectOutputStream out = new ObjectOutputStream(file);
 
@@ -66,14 +65,7 @@ public class Metadata {
 
             try{
                 Files.move(temp_path,metadata_path, StandardCopyOption.ATOMIC_MOVE);
-            } catch (IOException e) {
-
-            }
-
-//            if(temp_file.exists()){
-//                temp_file.renameTo(metadata_file);
-//            }
-
+            } catch (IOException e) {}
 
 
         } catch(IOException e) {
@@ -86,36 +78,21 @@ public class Metadata {
     }
 
     public void readPieceMapFromDisk(){
-
         // Deserialization
         try
         {
             // Reading the object from a file
             FileInputStream file = new FileInputStream(this.metadata_file);
             ObjectInputStream in = new ObjectInputStream(file);
-
             // Method for deserialization of object
             this.pieceMap = (PieceMap) in.readObject();
 
             in.close();
             file.close();
-        }
 
-        catch(IOException | ClassNotFoundException ex)
-        {
+        } catch(IOException | ClassNotFoundException ex) {
             System.err.println("IOException is caught " + ex.getMessage());
         }
 
     }
-
-    public void printMap(){ // for testing metadata
-        readPieceMapFromDisk();
-        System.out.print("from metadata after reading from disk :[");
-        for(int i = 0; i < (pieceMap.bitmap).length; i++){
-            System.out.print(pieceMap.bitmap[i] +", ");
-        }
-        System.out.println("]");
-    }
-
-
 }

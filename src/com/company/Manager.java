@@ -13,13 +13,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Manager {
 
     public int file_len = 0;
-    public int THREAD_CONNECTIONS = 0;
-    public List<String> URL_LIST;
+    public int threads_connections = 0;
+    public List<String> url_list;
     public Thread[] threads;
     public BlockingQueue<DataPiece> content_queue = new LinkedBlockingQueue<>();
     public Thread writer;
-    public int PIECE_SIZE = 8192; // Splitting the download into pieces
-    public int NUM_TOTAL_PIECES;
+    public int piece_size = 8192; // Splitting the download into pieces
+    public int num_total_pieces;
     public Metadata metadata;
 
 
@@ -33,13 +33,13 @@ public class Manager {
 
             //Assume the server knows the content length
             this.file_len = connection.getContentLength();
-            System.out.println("file length " + this.file_len); //REMOVE
 
         } catch (MalformedURLException e){
             System.err.println("Incorrect URL. Download failed.");
+            return;
 
         } catch (IOException ie) {
-            System.err.println("Failed to connect " + ie.getMessage() + " Download faild.");
+            System.err.println("Failed to connect " + ie.getMessage() + " Download failed.");
             this.handleErrors(ie);
         } finally {
             if (connection != null) {
@@ -49,25 +49,24 @@ public class Manager {
     }
 
     public void setNumOfConnection(int n){
-        //TODO
-        THREAD_CONNECTIONS = n;
+        threads_connections = n;
     }
 
     public void setUrlList(List<String> urls){
-        URL_LIST = urls;
+        url_list = urls;
     }
 
     public void initWorkers(){
-        int totalPieces = this.file_len / PIECE_SIZE;
-        int workerPieces = totalPieces / THREAD_CONNECTIONS;
-        int rangeToRead = PIECE_SIZE*workerPieces ;
+        int totalPieces = this.file_len / piece_size;
+        int workerPieces = totalPieces / threads_connections;
+        int rangeToRead = piece_size *workerPieces ;
 
-        this.threads = new Thread[THREAD_CONNECTIONS];
+        this.threads = new Thread[threads_connections];
 
-        NUM_TOTAL_PIECES = totalPieces;
-        if((this.file_len % PIECE_SIZE) != 0) NUM_TOTAL_PIECES++;
+        num_total_pieces = totalPieces;
+        if((this.file_len % piece_size) != 0) num_total_pieces++;
 
-        initMetadata(NUM_TOTAL_PIECES);
+        initMetadata(num_total_pieces);
 
         int offset = 0;
         int i;
@@ -75,25 +74,23 @@ public class Manager {
         String[] urls = distributeUrl();
 
         int firstPieceId = 0; // for pieces id (for metadata array)
-        for (i = 0; i < THREAD_CONNECTIONS -1; i++){
-            Worker worker = new Worker(rangeToRead,offset,urls[i], this.content_queue, firstPieceId, this.metadata, PIECE_SIZE, this);
+        for (i = 0; i < threads_connections -1; i++){
+            Worker worker = new Worker(rangeToRead,offset,urls[i], this.content_queue, firstPieceId, this.metadata, piece_size, this);
             this.threads[i] = new Thread(worker);
             offset += rangeToRead; //start point of the next thread to read from file
             firstPieceId += workerPieces;
         }
         // last worker will read the reminder of the file
-        Worker worker = new Worker((totalPieces % THREAD_CONNECTIONS)*PIECE_SIZE + rangeToRead + (this.file_len % PIECE_SIZE) ,offset,urls[i],this.content_queue, firstPieceId, this.metadata ,PIECE_SIZE, this);
+        Worker worker = new Worker((totalPieces % threads_connections)* piece_size + rangeToRead + (this.file_len % piece_size) ,offset,urls[i],this.content_queue, firstPieceId, this.metadata , piece_size, this);
         this.threads[i] = new Thread(worker);
     }
 
-
-
     public String[] distributeUrl(){
         //each url index respectively to thread serial number
-        String[] urls = new String[THREAD_CONNECTIONS];
+        String[] urls = new String[threads_connections];
         int j = 0;
-        for(int i = 0; i<THREAD_CONNECTIONS; i++){
-            urls[i] = URL_LIST.get(j % URL_LIST.size());
+        for(int i = 0; i<threads_connections; i++){
+            urls[i] = url_list.get(j % url_list.size());
             j++;
         }
 
@@ -101,14 +98,13 @@ public class Manager {
     }
 
     public void startWorkers(){
-//        System.err.println("Downloading...");
         for(int i = 0 ; i <this.threads.length ; i++){
             this.threads[i].start();
         }
     }
 
     public void startWriter(){
-        File destFile = createDestFile(URL_LIST.get(0));
+        File destFile = createDestFile(url_list.get(0));
         this.writer = new Thread(new Writer(this.content_queue, this.file_len, destFile, this.metadata, this));
         this.writer.start();
     }
@@ -139,10 +135,9 @@ public class Manager {
         return name;
     }
 
-    public void initMetadata(int NUM_TOTAL_PIECES)
-    {
-        String downloadedFileName = getDownloadFileName(URL_LIST.get(0));
-        this.metadata = new Metadata(NUM_TOTAL_PIECES, downloadedFileName);
+    public void initMetadata(int total_pieces) {
+        String downloadedFileName = getDownloadFileName(url_list.get(0));
+        this.metadata = new Metadata(total_pieces, downloadedFileName);
     }
 
     public void handleErrors(Exception e){

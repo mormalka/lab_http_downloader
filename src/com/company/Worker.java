@@ -3,7 +3,6 @@ package com.company;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.concurrent.BlockingQueue;
 
@@ -31,7 +30,6 @@ public class Worker implements Runnable{
         this.piece_size = piece_size;
         this.manager = manager;
 
-//        System.out.println(" rangeToRead- " + rangeToRead + " offset- " +  offset + " serialNumber- " + id + "  url_str- " +  url_str);
     }
 
     @Override
@@ -45,6 +43,7 @@ public class Worker implements Runnable{
             URL url = new URL(this.url_str);
             connection = (HttpURLConnection) url.openConnection();
             connection.setReadTimeout(30000); // waits maximum for half a minute to available data to read from connection
+
             //Create a string which defines the range value
             String range_value = "bytes=" + this.offset + "-" + (this.offset + this.rangeToRead);
 
@@ -59,10 +58,6 @@ public class Worker implements Runnable{
             System.err.println("Incorrect URL. Download failed.");
             return;
 
-//        } catch (ProtocolException e) { //INTELLIJE SUGGESTED
-//            System.err.println("HTTP request failed " + e.getMessage() + "Download failed");
-//            manager.handleErrors(e);
-
         } catch (IOException e) {
             System.err.println("HTTP request failed " + e.getMessage() + "Download failed");
             manager.handleErrors(e);
@@ -73,7 +68,6 @@ public class Worker implements Runnable{
                 connection.disconnect();
             }
         }
-
     }
 
     public void readContent(HttpURLConnection connection) throws IOException {
@@ -88,13 +82,13 @@ public class Worker implements Runnable{
                         this.piece_size = this.rangeToRead - inputRead; //only the last piece of the last thread will change size
                     }
                 }
-                // check if piece allready transfered to writer according to metadata - in case of resume download
+                // check if piece already transferred to writer according to metadata - in case of resume download
                 if(!(this.metadata.pieceMap.bitmap[this.firstPieceId])) {
-                    int currrent_byte;
+                    int current_byte;
                     byte[] input_piece = new byte[piece_size];
                     for (int i = 0; i < this.piece_size; i++) {
-                        if ((currrent_byte = in.read()) == -1) break;
-                        input_piece[i] = (byte) currrent_byte;
+                        if ((current_byte = in.read()) == -1) break;
+                        input_piece[i] = (byte) current_byte;
                     }
                     DataPiece current_piece = new DataPiece(this.offset, input_piece, this.piece_size, this.firstPieceId);
                     this.queue.add(current_piece);

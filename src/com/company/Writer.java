@@ -13,7 +13,7 @@ public class Writer implements Runnable {
     public File dest_file;
     public Metadata metadata;
     public boolean isWriterFinished = false;
-    public int downloadPrecentage;
+    public int downloadPercentage;
     public Manager manager;
 
     public Writer (BlockingQueue<DataPiece> queue, int file_len, File file, Metadata metadata, Manager manager){
@@ -22,19 +22,20 @@ public class Writer implements Runnable {
         this.dest_file = file;
         this.metadata = metadata;
         this.numOfReadBytes = 0;
-        this.downloadPrecentage = getPercentageCompleted();
+        this.downloadPercentage = getPercentageCompleted();
         this.manager = manager;
     }
 
 
     @Override
     public void run() {
+        RandomAccessFile randomAccess = null;
         try {
             if(metadata.isFirstRun){
                 System.err.println("Downloaded 0%");
             }
-            RandomAccessFile randomAccess = new RandomAccessFile(dest_file, "rw");
-            while (this.downloadPrecentage < 100) {
+            randomAccess = new RandomAccessFile(dest_file, "rw");
+            while (this.downloadPercentage < 100) {
                 if (!this.queue.isEmpty()) {
                     DataPiece dataPiece = queue.poll();
                     randomAccess.seek(dataPiece.offset);
@@ -48,23 +49,21 @@ public class Writer implements Runnable {
             System.err.println("Metadata file size: " + this.metadata.metadata_file.length()); // REMOVE
 
             this.metadata.metadata_file.delete();
-//            this.metadata.temp_file.delete(); ??
             this.isWriterFinished = true;
             printAndUpdatePercentageCompleted();
             System.err.println("Download succeeded"); // CHANGE TO ERR
-//            metadata.printMap();
-//
-//            System.out.print("from writer: [");
-//
-//            for(int i = 0; i < (metadata.pieceMap.bitmap).length; i++){
-//                System.out.print(metadata.pieceMap.bitmap[i] +", ");
-//            }
-//            System.out.println("]");
-
 
         } catch (IOException e){
             System.err.println("Access to file failed " + e.getMessage() + ",Download failed");
             return;
+        }finally {
+            if(randomAccess != null) {
+                try {
+                    randomAccess.close();
+                } catch (IOException e) {
+                    System.err.println("Close file failed " + e.getMessage() + ",Download failed");
+                }
+            }
         }
 
     }
@@ -82,15 +81,11 @@ public class Writer implements Runnable {
         return percentage;
     }
 
-    public boolean isWriterFinished(){
-     return isWriterFinished;
-    }
-
     public void printAndUpdatePercentageCompleted(){
         int currentPercentage = getPercentageCompleted();
-        if (currentPercentage > this.downloadPrecentage){ // the percentage is rounded down into int
+        if (currentPercentage > this.downloadPercentage){ // the percentage is rounded down into int
             System.err.println("Downloaded " + currentPercentage  + "%");
         }
-        this.downloadPrecentage = currentPercentage;
+        this.downloadPercentage = currentPercentage;
     }
 }

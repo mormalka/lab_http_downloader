@@ -15,7 +15,6 @@ public class IdcDm {
             System.err.println("usage: java IdcDm URL|URL-LIST-FILE [MAX-CONCURRENT-CONNECTIONS]");
             return;
         }
-
         if (args.length > 1){ //get the number of thread connections given by the user
             int connectionsFromUser =  Integer.parseInt(args[1]);
             if (connectionsFromUser > 1){
@@ -27,7 +26,7 @@ public class IdcDm {
         //initial empty url list
         List<String> url_list = new ArrayList<>();
 
-        if(file.exists()){ //handle list of urls
+        if (file.exists()){ //handle list of urls
             BufferedReader br = null;
             try {
                 br = new BufferedReader(new FileReader(file));
@@ -56,10 +55,14 @@ public class IdcDm {
             manager.setUrlList(url_list);
         }
 
+
         //sets the number of possible threads connections
         manager.setNumOfConnection(thread_Connections);
+        //initialize threads to read from destination
         manager.initWorkers();
+        //start single thread to write file to disk
         manager.startWriter();
+        //start threads to download file
         manager.startWorkers();
 
 
