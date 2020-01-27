@@ -55,12 +55,12 @@ public class Worker implements Runnable{
 
 
         } catch (MalformedURLException e) {
-            System.err.println("Incorrect URL. Download failed.");
+            System.err.println("Incorrect URL. Download failed");
             return;
 
         } catch (IOException e) {
-            System.err.println("HTTP request failed " + e.getMessage() + "Download failed");
-            manager.handleErrors(e);
+            System.err.println("HTTP request failed in thread " + this.id + ". Download failed");
+            manager.handleErrors();
 
         }  finally {
             if (connection != null) {
@@ -103,8 +103,8 @@ public class Worker implements Runnable{
 
         } catch (IOException e) {
             //calling manager to handle errors
-            System.err.println("IO Exception while reading content " + e + " Download failed, problem server:" + this.url_str);
-            this.manager.handleErrors(e);
+            System.err.println("IO Exception while reading content from server. Download failed");
+            this.manager.handleErrors();
         } finally {
             if(in != null)
                 in.close();

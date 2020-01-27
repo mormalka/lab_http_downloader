@@ -46,26 +46,24 @@ public class Writer implements Runnable {
                 }
 
             }
-            System.err.println("Metadata file size: " + this.metadata.metadata_file.length()); // REMOVE
 
             this.metadata.metadata_file.delete();
             this.isWriterFinished = true;
             printAndUpdatePercentageCompleted();
-            System.err.println("Download succeeded"); // CHANGE TO ERR
+            System.err.println("Download succeeded");
 
         } catch (IOException e){
-            System.err.println("Access to file failed " + e.getMessage() + ",Download failed");
+            System.err.println("Can not access to file. Download failed");
             return;
         }finally {
             if(randomAccess != null) {
                 try {
                     randomAccess.close();
                 } catch (IOException e) {
-                    System.err.println("Close file failed " + e.getMessage() + ",Download failed");
+                    System.err.println("Can not close file. Download failed");
                 }
             }
         }
-
     }
 
     public int getNumOfReadPieces(){
