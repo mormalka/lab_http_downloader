@@ -20,7 +20,7 @@ Worker:
 Create http connection, download range in DataPiece(constant size) and write it to blocking queue.
 
 Writer
-Reads DataPiece from blocking queue, maintain metaData instance and write content into new file.
+Reads DataPieces from blocking queue, write content into new file and maintin metadata (after every piece write).
 
 DataPiece
 A Serializable object, indicates the safe transfferd DataPieces which written by the writer.
