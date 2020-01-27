@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -34,13 +35,15 @@ public class Manager {
             //Assume the server knows the content length
             this.file_len = connection.getContentLength();
 
-        } catch (MalformedURLException e){
+        } catch (MalformedURLException e) {
             System.err.println("Incorrect URL. Download failed.");
             return;
-
+        } catch (ProtocolException ie) {
+            System.err.println("Failed to connect server. Download failed.");
+            this.handleErrors();
         } catch (IOException ie) {
-            System.err.println("Failed to connect " + ie.getMessage() + " Download failed.");
-            this.handleErrors(ie);
+            System.err.println("Failed to connect server. Download failed.");
+            this.handleErrors();
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -60,9 +63,7 @@ public class Manager {
         int totalPieces = this.file_len / piece_size;
         int workerPieces = totalPieces / threads_connections;
         int rangeToRead = piece_size *workerPieces ;
-
         this.threads = new Thread[threads_connections];
-
         num_total_pieces = totalPieces;
         if((this.file_len % piece_size) != 0) num_total_pieces++;
 
@@ -70,7 +71,6 @@ public class Manager {
 
         int offset = 0;
         int i;
-
         String[] urls = distributeUrl();
 
         int firstPieceId = 0; // for pieces id (for metadata array)
@@ -116,14 +116,14 @@ public class Manager {
         File file = new File(path);
         // in case of resume
         if(file.exists()){
-            System.out.println("$$$$$$$ file exist");
             return file;
         }
 
         try {
             file.createNewFile();
         } catch (IOException e){
-            System.err.println("Creating new file failed " + e.getMessage() + ", Download failed");
+            System.err.println("Creating new file to download into failed. Download failed");
+            System.exit(1);
         }
 
         return file;
@@ -140,7 +140,7 @@ public class Manager {
         this.metadata = new Metadata(total_pieces, downloadedFileName);
     }
 
-    public void handleErrors(Exception e){
+    public void handleErrors(){
         System.exit(1); //didn't finish successfully - status 1
     }
 }

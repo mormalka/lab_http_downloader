@@ -28,7 +28,7 @@ public class Metadata {
             try {
                 this.metadata_file.createNewFile();
             } catch (IOException e){
-                System.err.println("Creating new metadata file failed " + e.getMessage() + ",Download failed");
+                System.err.println("Creating new metadata file failed " + e.getMessage() + ". Download failed");
             }
         }
 
@@ -37,7 +37,7 @@ public class Metadata {
             try {
                 this.temp_file.createNewFile();
             } catch (IOException e){
-                System.err.println("Creating new temp file failed " + e.getMessage() + ",Download failed");
+                System.err.println("Creating new temp file failed " + e.getMessage() + ". Download failed");
             }
         }
     }
@@ -69,11 +69,11 @@ public class Metadata {
 
 
         } catch(IOException e) {
-            System.err.println("IOException is caught " + e);
+            System.err.println("IOException is caught " + e.getMessage());
         } catch (SecurityException se){
-            System.err.println("SecurityException is caught " + se);
+            System.err.println("SecurityException is caught " + se.getMessage());
         } catch (NullPointerException ne){
-            System.err.println("No destination parameter " + ne);
+            System.err.println("No destination parameter " + ne.getMessage());
         }
     }
 

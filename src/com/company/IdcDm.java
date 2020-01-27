@@ -31,17 +31,16 @@ public class IdcDm {
             try {
                 br = new BufferedReader(new FileReader(file));
             } catch (FileNotFoundException e) {
-                System.err.println("------------");
+                System.err.println("failed to read URLs list file." +e.getMessage() + " Download failed");
             }
             String str = "";
             while(true) {
                 try {
                     if (!((str = br.readLine()) != null)) break;
                 } catch (IOException e) {
-                    System.err.println("------------");
+                    System.err.println("failed to read URLs list file." +e.getMessage() + " Download failed");
                 } //insert urls into list
                 url_list.add(str);
-                System.out.println("current url " + str);
             }
             //Every server has the same file, in particular the first
             manager.setFileLength(url_list.get(0));
@@ -55,7 +54,6 @@ public class IdcDm {
             manager.setUrlList(url_list);
         }
 
-
         //sets the number of possible threads connections
         manager.setNumOfConnection(thread_Connections);
         //initialize threads to read from destination
@@ -64,8 +62,6 @@ public class IdcDm {
         manager.startWriter();
         //start threads to download file
         manager.startWorkers();
-
-
     }
 
 }
