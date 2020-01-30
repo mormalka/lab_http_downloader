@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class Writer implements Runnable {
 
-    public BlockingQueue<DataPiece>queue;
+    public BlockingQueue<DataPiece> queue;
     public int file_len;
     public int numOfReadBytes; //num of bytes that the writer already read
     public File dest_file;
@@ -54,13 +54,13 @@ public class Writer implements Runnable {
 
         } catch (IOException e){
             System.err.println("Can not access to file. Download failed");
-            return;
+            manager.handleErrors();
         }finally {
             if(randomAccess != null) {
                 try {
                     randomAccess.close();
                 } catch (IOException e) {
-                    System.err.println("Can not close file. Download failed");
+                    System.err.println("Can not close file.");
                 }
             }
         }

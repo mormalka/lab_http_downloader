@@ -31,14 +31,16 @@ public class IdcDm {
             try {
                 br = new BufferedReader(new FileReader(file));
             } catch (FileNotFoundException e) {
-                System.err.println("failed to read URLs list file." +e.getMessage() + " Download failed");
+                System.err.println("URLs list file didn't found." +e.getMessage() + ". Download failed");
+                System.exit(1);
             }
             String str = "";
             while(true) {
                 try {
                     if (!((str = br.readLine()) != null)) break;
                 } catch (IOException e) {
-                    System.err.println("failed to read URLs list file." +e.getMessage() + " Download failed");
+                    System.err.println("Failed to read URLs list file." +e.getMessage() + ". Download failed");
+                    System.exit(1);
                 } //insert urls into list
                 url_list.add(str);
             }
