@@ -32,7 +32,7 @@ public class IdcDm {
                 br = new BufferedReader(new FileReader(file));
             } catch (FileNotFoundException e) {
                 System.err.println("URLs list file didn't found." +e.getMessage() + ". Download failed");
-                System.exit(1);
+                System.exit(1); //didn't finish successfully - status 1
             }
             String str = "";
             while(true) {
@@ -40,7 +40,7 @@ public class IdcDm {
                     if (!((str = br.readLine()) != null)) break;
                 } catch (IOException e) {
                     System.err.println("Failed to read URLs list file." +e.getMessage() + ". Download failed");
-                    System.exit(1);
+                    System.exit(1); //didn't finish successfully - status 1
                 } //insert urls into list
                 url_list.add(str);
             }
