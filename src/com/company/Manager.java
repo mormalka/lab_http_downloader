@@ -138,6 +138,9 @@ public class Manager {
     public void initMetadata(int total_pieces) {
         String downloadedFileName = getDownloadFileName(url_list.get(0));
         this.metadata = new Metadata(total_pieces, downloadedFileName);
+        if(!this.metadata.isValid){
+            this.handleErrors();
+        }
     }
 
     public void handleErrors(){

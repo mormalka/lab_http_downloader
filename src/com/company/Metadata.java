@@ -11,6 +11,7 @@ public class Metadata {
     public File temp_file;
     public File metadata_file;
     public boolean isFirstRun = true;
+    public boolean isValid = true;
 
 
     public Metadata (int numberOfPieces, String downloadedFileName){
@@ -29,6 +30,7 @@ public class Metadata {
                 this.metadata_file.createNewFile();
             } catch (IOException e){
                 System.err.println("Creating new metadata file failed " + e.getMessage() + ". Download failed");
+                this.isValid = false;
             }
         }
 
@@ -38,6 +40,7 @@ public class Metadata {
                 this.temp_file.createNewFile();
             } catch (IOException e){
                 System.err.println("Creating new temp file failed " + e.getMessage() + ". Download failed");
+                this.isValid = false;
             }
         }
     }
@@ -50,26 +53,28 @@ public class Metadata {
         // Serialization for temp file
         try {
             //Saving object in a file
-            FileOutputStream file = new FileOutputStream(this.temp_file);
-            ObjectOutputStream out = new ObjectOutputStream(file);
+            FileOutputStream fileOS = new FileOutputStream(this.temp_file);
+            ObjectOutputStream out = new ObjectOutputStream(fileOS);
 
             // Method for serialization of object
             out.writeObject(this.pieceMap);
 
             out.close();
-            file.close();
+            fileOS.close();
 
             //atomic write to metadata
             Path temp_path = temp_file.toPath();
             Path metadata_path = metadata_file.toPath();
 
+            // Move occasionally fails but this do not affect the data because for each piece the metadata is updated,
+            // so there are enough pieces in order to maintain a valid metadata and to not crush the program
             try{
                 Files.move(temp_path,metadata_path, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException e) {}
 
 
         } catch(IOException e) {
-            System.err.println("IOException is caught " + e.getMessage());
+            System.err.println("Error occured while trying to write to object " + e.getMessage());
         } catch (SecurityException se){
             System.err.println("SecurityException is caught " + se.getMessage());
         } catch (NullPointerException ne){
@@ -84,14 +89,20 @@ public class Metadata {
             // Reading the object from a file
             FileInputStream file = new FileInputStream(this.metadata_file);
             ObjectInputStream in = new ObjectInputStream(file);
+
             // Method for deserialization of object
-            this.pieceMap = (PieceMap) in.readObject();
+            try {
+                this.pieceMap = (PieceMap) in.readObject();
+            } catch (IOException e){
+                System.err.println("Error occured while trying to read object from disk " + e.getMessage() + ". Download failed");
+                this.isValid = false;
+            }
 
             in.close();
             file.close();
 
         } catch(IOException | ClassNotFoundException ex) {
-            System.err.println("IOException is caught " + ex.getMessage());
+            System.err.println("Error occured while trying to read object from disk " + ex.getMessage());
         }
 
     }
